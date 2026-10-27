@@ -1,0 +1,789 @@
+<!doctype html>
+<html lang="en" dir="ltr"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<!-- =====================================================================
+  TMC BASE APP — CONFIG. Change ONLY this block for a new app, then run:
+      python3 tools/apply_config.py
+  (it writes manifest.json, sw.js cache/version, icons and the QR code).
+  APP_ID: short, lowercase, unique per app (e.g. "purshes", "grv", "food").
+          Every storage key, cache, manifest id and SW is namespaced by it,
+          so apps on the same site / same phone never share data.
+  CACHE_PREFIX (optional): cache name start, lowercase letters/digits and
+          single hyphens (e.g. "tmc-fuel" gives caches "tmc-fuel-v1").
+          Defaults to APP_ID. Storage keys always use APP_ID (no hyphens).
+  SYNC_URL: this app's own Google Apps Script /exec link. Put it HERE so a
+          fresh install is connected at once (the link is public, that's fine).
+  SYNC_CODE: leave EMPTY (VER 4+). Phones then sign in with name + PIN and
+          get a session token from the script. A code is only for old apps;
+          it can also arrive by a join link  .../#k=CODE  (saved, then wiped
+          from the address bar). Never put a real code in a public repo.
+  ADMIN_ALIASES: name keys (lowercase, no spaces/dots) that mean the Admin.
+====================================================================== -->
+<script id="cfg">window.CONFIG=/*CONFIG*/{
+ "APP_ID": "tmcservice",
+ "NAME": "TMC Service",
+ "SHORT": "TMC Service",
+ "VER": 5,
+ "COLOR": "#1d4ed8",
+ "COLOR_DARK": "#1e3a8a",
+ "REPORT_COLOR": "#1B7F3B",
+ "BG": "#f1f5f9",
+ "SYNC_URL": "https://script.google.com/macros/s/AKfycbxjMapZVib5YcWk21HTtsu6SeTuxOmf0sTqRId5NpItfXwMRXRavujQ7B8syaklUZPS6Q/exec",
+ "SYNC_CODE": "",
+ "SHARE_URL": "https://johankirsten82.github.io/tmc-service/",
+ "ADMIN_NAME": "JA Kirsten",
+ "ADMIN_ALIASES": [
+  "jakirsten",
+  "johankirsten",
+  "johanakirsten",
+  "jkirsten"
+ ],
+ "PERMS": [
+  {
+   "id": "view",
+   "icon": "👁️",
+   "en": "View",
+   "fr": "Voir",
+   "ar": "عرض"
+  },
+  {
+   "id": "add",
+   "icon": "🔧",
+   "en": "Set service",
+   "fr": "Régler entretien",
+   "ar": "ضبط الصيانة"
+  },
+  {
+   "id": "reports",
+   "icon": "📊",
+   "en": "Reports",
+   "fr": "Rapports",
+   "ar": "تقارير"
+  },
+  {
+   "id": "export",
+   "icon": "📤",
+   "en": "Export",
+   "fr": "Exporter",
+   "ar": "تصدير"
+  }
+ ],
+ "PERM_DEFAULT": [
+  "view",
+  "add"
+ ],
+ "PERM_KINDS": {
+  "x": {
+   "view": "view",
+   "add": "add"
+  },
+  "s": {
+   "view": "view",
+   "add": "add"
+  },
+  "fv": {
+   "view": "view",
+   "add": "admin"
+  }
+ },
+ "CACHE_PREFIX": "tmc-service"
+}/*END*/;</script>
+<title>TMC Service</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/favicon-32.png?v=5">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=5">
+<meta name="theme-color" content="#1d4ed8">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
+<style>
+/* TMC look = Purchases look (pa-v85). Colour comes from CONFIG COLOR (--c/--cd). Rule 1: every button/field >= 56px. */
+:root{--c:#0f766e;--cd:#115e59;--bg:#f1f5f9}
+*{box-sizing:border-box}html,body{margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:var(--bg);color:#0f172a;font-size:17px;min-height:100vh;padding-bottom:80px}
+input,select,textarea,button{font:inherit;font-size:18px;min-height:58px;width:100%;border:1px solid #cbd5e1;border-radius:10px;padding:10px;margin:6px 0;background:#fff;color:#0f172a}
+textarea{min-height:80px}
+button{background:var(--c);color:#fff;border:0;font-weight:600;cursor:pointer;touch-action:manipulation}
+button.sec{background:#e2e8f0;color:#0f172a}button.red{background:#b91c1c}button.sm{width:auto;padding:8px 14px;margin:4px}
+label{display:block;font-size:14px;color:#475569;margin:8px 0 4px}
+.msk:not(.shw){-webkit-text-security:disc}
+.pw{position:relative}.pw .eye{position:absolute;inset-inline-end:4px;top:6px;width:auto;padding:4px 12px;background:transparent;color:#334155;font-size:22px;margin:0;border:0}
+.full{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px;background:linear-gradient(var(--c),var(--cd))}
+.signin{position:relative;width:100%;max-width:440px}.signin>.card{margin:0}
+.signin>.ncBox{position:absolute;top:100%;left:0;right:0;margin:16px 0 0}
+.card{background:#fff;border-radius:14px;padding:14px;width:100%;max-width:440px;box-shadow:0 1px 3px #0002;text-align:center;margin-bottom:12px}
+.card h2{margin:6px 0 4px;font-size:22px}.logo{width:84px;height:84px;border-radius:14px}
+.err{color:#b91c1c;font-weight:700;display:none;margin:6px 0}.hint{color:#475569;font-size:15px}
+.langs select{text-align:center}
+header{position:sticky;top:0;z-index:5;background:var(--c);color:#fff;padding:12px 14px;display:flex;align-items:center;gap:10px}
+header img{width:36px;height:36px;border-radius:8px}header .t{flex:1;min-width:0;font-weight:700;font-size:20px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}header .u{font-size:15px;opacity:.9}
+header{min-height:56px;flex-wrap:nowrap}header .hS{display:flex;align-items:center;gap:6px;font-size:14px;white-space:nowrap;direction:ltr}header .dot{border:2px solid #fff}
+header .hLang{width:auto;min-height:56px;min-width:64px;margin:0;padding:0 8px;border:2px solid #fff;border-radius:12px;background:transparent;color:#fff;font-size:17px;font-weight:700}header .hLang option{color:#0f172a}
+@media (max-width:380px){header{gap:6px;padding:8px 10px}header img{width:30px;height:30px}header .t{font-size:17px}}
+.dot{width:14px;height:14px;border-radius:50%;background:#94a3b8;display:inline-block}.dot.ok{background:#22c55e}.dot.err{background:#ef4444}.dot.busy{background:#f59e0b}
+main{padding:12px 12px 110px;max-width:600px;margin:0 auto}
+nav.tabs{position:fixed;bottom:0;left:0;right:0;display:flex;background:#fff;border-top:1px solid #cbd5e1;z-index:10;padding-bottom:env(safe-area-inset-bottom)}
+nav.tabs button{flex:1;margin:0;border-radius:0;background:#fff;color:#475569;min-height:64px;font-size:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;position:relative;padding:0 2px}
+nav.tabs button .ticon{font-size:24px}nav.tabs button.on{color:var(--c);border-top:3px solid var(--c);background:#f0fdfa}
+.badge{position:absolute;top:4px;inset-inline-end:18%;background:#dc2626;color:#fff;border-radius:9px;padding:0 5px;font-size:12px;line-height:18px;font-weight:700}
+.hhero{display:flex;align-items:center;gap:14px}.hhero img{border-radius:14px;flex:none}.hhero h2{margin:0;font-size:21px}#hDate{color:#475569;margin-top:2px}.hhi{font-size:18px;font-weight:700;color:#0f766e;margin-top:2px}
+.loBand{width:100%;min-height:56px;margin:0 0 10px;font-size:18px;font-weight:700}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}
+.tile{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:150px;margin:0;padding:12px 6px;background:#fff;color:#0f172a;border:2px solid #bbf7d0;border-radius:16px;box-shadow:0 2px 8px #0000000f;font-size:17px;font-weight:700}
+.tile.sec{background:#fff}.tile:active{background:#f0fdf4}.tile b{font-size:40px;line-height:1}
+.phPick{display:flex;gap:8px}.phPick label{flex:1;min-height:64px;display:flex;align-items:center;justify-content:center;text-align:center;background:var(--c);color:#fff;border-radius:10px;font-weight:700;font-size:17px;padding:6px;margin:6px 0;cursor:pointer}.phPick label.alt{background:#fff;color:var(--c);border:2px solid var(--c)}.phPick input{display:none}.phPrev{max-width:100%;border-radius:10px;margin-top:6px}
+.rep{width:100%;border-collapse:collapse;font-size:17px;margin:6px 0}.rep th{background:var(--rc);color:#fff;text-align:left;padding:12px 10px}.rep td{padding:12px 10px;border-bottom:1px solid #d1e7d8}.rep tbody tr:nth-child(even) td{background:color-mix(in srgb,var(--rc) 10%,#fff)}.rep tfoot td{background:color-mix(in srgb,var(--rc) 22%,#fff);color:var(--rc);font-weight:800;border-top:3px solid var(--rc)}/* SERVICE HOOK 3/3 (approved): red overdue report rows (also r._red in repTable) */.rep tr.red td{background:#dc2626!important;color:#fff!important}.repH{background:var(--rc);color:#fff;border-radius:10px;padding:12px;font-weight:800;font-size:19px;margin:6px 0}
+nav.tabs .tlab{font-size:13px;line-height:1.1;text-align:center;overflow-wrap:anywhere;max-width:100%}
+.rpBar{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}.rpBar button{margin:0;padding:6px 4px;font-size:16px}.rpBar button.on{background:var(--rc);color:#fff}
+.rpDates{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px}.rpDates>div{min-width:0}.rpDates input{width:100%;min-width:0;max-width:100%;box-sizing:border-box}.rpDates label{margin:4px 0 0}
+.rpAct{display:grid;grid-template-columns:1fr 1fr;gap:8px}.rpAct button{margin:0}.rpAct .rpBk{grid-column:1/-1}
+.rpXls{background:var(--rc)}.rpList button{text-align:start}
+#rpOut .rep{table-layout:fixed;font-size:15px}#rpOut .rep th,#rpOut .rep td{padding:10px 6px;overflow-wrap:anywhere}.rep th{text-align:start}.rep .nm{text-align:end}
+@media print{header,nav.tabs,.bar,.noPr,button{display:none!important}body{background:#fff;padding:0}.box{box-shadow:none}#rpOut .rep th,#rpOut .rep tfoot td,#rpOut .rep tbody tr:nth-child(even) td,.repH{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+.box{background:#fff;border-radius:14px;padding:14px;margin:0 0 12px;box-shadow:0 1px 3px #0002}
+.ph{border:4px dashed #f59e0b;background:#fffbeb;text-align:center}
+.bar{display:none;margin:0 0 12px;padding:12px;border-radius:14px;font-weight:700}
+.pendW{background:#fef3c7;border:1px solid #f59e0b;color:#78350f}.updW{background:#fef3c7;border:1px solid #f59e0b;color:#78350f}.updW button{background:#b45309}
+.bar small{display:block;font-weight:500;margin-top:4px}
+.urow{display:flex;flex-wrap:wrap;align-items:center;gap:4px;border-bottom:1px solid #e2e8f0;padding:8px 0}.urow .n{flex:1;min-width:140px;font-weight:700}
+.st{font-size:14px;border-radius:99px;padding:2px 8px;background:#e2e8f0}.st.pending{background:#fef3c7}.st.blocked,.st.rejected{background:#fee2e2}.st.active{background:#dcfce7}
+.insB{background:#16a34a;font-size:20px;min-height:64px}.insH{background:#f1f5f9;border-radius:10px;padding:10px;font-weight:600;margin:6px 0}
+.permBox{width:100%;margin:8px 0;border:2px solid #e2e8f0;border-radius:12px;overflow:hidden;background:#fff}.permBox .hint{padding:8px 12px;margin:0}
+.permT{display:flex;align-items:center;gap:12px;min-height:60px;border-top:1px solid #e2e8f0;padding:6px 14px;font-size:19px;font-weight:700;background:#fff;cursor:pointer}
+.permT span{flex:1}.permT.on{background:#ecfdf5}.permT input{width:32px;height:32px;min-height:32px;margin:0;flex:none;accent-color:var(--c)}
+.permT.lock{color:#94a3b8;background:#f8fafc;cursor:default}.permT.lock small{font-size:14px;font-weight:600}
+.uli{display:flex;align-items:center;gap:10px;width:100%;min-height:64px;background:#fff;color:#0f172a;border:0;border-bottom:1px solid #e2e8f0;border-radius:0;padding:8px 4px;text-align:start;font-size:19px;font-weight:700;box-shadow:none}
+.uli .ui{font-size:26px}.uli .ut{flex:1;min-width:0}.uli small{display:block;font-size:14px;font-weight:600;color:#475569}.uli .ch{font-size:26px;color:#94a3b8}
+.uopen{padding:6px 0 12px;border-bottom:1px solid #e2e8f0}.uopen .acts{display:flex;flex-wrap:wrap;gap:6px}
+.canR{display:flex;align-items:center;gap:12px;min-height:58px;font-size:20px;font-weight:700;border-bottom:1px solid #e2e8f0}.canR.no{color:#94a3b8}.canR .ci{font-size:26px}
+.fixB{width:auto;min-width:120px;min-height:56px;background:#b45309;font-size:18px}.fixN{width:100%}
+.modal{position:fixed;inset:0;background:#0008;display:flex;align-items:center;justify-content:center;z-index:20;padding:16px}
+.ncW{background:#fee2e2;border:1px solid #dc2626;color:#7f1d1d}
+.qr{width:240px;height:240px;max-width:80vw;max-height:80vw;background:#fff}
+
+/*TMC-SIGNIN v1 — shared sign-in block. Copy as-is. Only --tmcS-c/--tmcS-cd (colour), the logo and the app name may differ.*/
+.tmcS{position:fixed!important;inset:0!important;z-index:9000!important;overflow:auto!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:16px!important;margin:0!important;min-height:0!important;background:linear-gradient(var(--tmcS-c,#0f766e),var(--tmcS-cd,#115e59))!important;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif!important;box-sizing:border-box!important}
+.tmcS *{box-sizing:border-box!important;font-family:inherit!important;letter-spacing:normal!important}
+.tmcS .signin{position:relative!important;width:100%!important;max-width:380px!important;margin:0!important;padding:0!important}
+.tmcS .signin>.card{display:block!important;background:#fff!important;border-radius:14px!important;padding:16px!important;margin:0!important;width:100%!important;max-width:none!important;box-shadow:0 1px 3px #0002!important;text-align:center!important;border:0!important}
+.tmcS .tmcS-logo{display:block!important;width:84px!important;height:84px!important;margin:0 auto!important;border-radius:14px!important;padding:0!important}
+.tmcS .tmcS-t{display:block!important;margin:10px 0 12px!important;padding:0!important;font-size:22px!important;line-height:28px!important;height:28px!important;font-weight:700!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;color:#0f172a!important}
+.tmcS .tmcS-lang,.tmcS .tmcS-name{display:block!important;width:100%!important;height:58px!important;min-height:58px!important;max-height:58px!important;margin:0 0 12px!important;padding:0 14px!important;font-size:18px!important;line-height:normal!important;border:1px solid #cbd5e1!important;border-radius:12px!important;color:#0f172a!important;box-shadow:none!important;outline-offset:0}
+.tmcS .tmcS-lang{background:#eef2f6!important;text-align:center!important;text-align-last:center!important}
+.tmcS .tmcS-name{background:#fff!important;text-align:start!important}
+.tmcS .tmcS-err{color:#b91c1c!important;font-weight:700!important;margin:0 0 8px!important;font-size:16px!important}
+.tmcS .tmcS-go{display:block!important;width:100%!important;height:58px!important;min-height:58px!important;margin:0!important;padding:0 14px!important;font-size:19px!important;font-weight:700!important;border:0!important;border-radius:12px!important;background:var(--tmcS-c,#0f766e)!important;color:#fff!important;box-shadow:none!important}
+.tmcS .ncBox{position:absolute!important;top:100%!important;left:0!important;right:0!important;bottom:auto!important;width:auto!important;margin:16px 0 0!important;padding:14px!important;background:#fee2e2!important;border:1px solid #dc2626!important;border-radius:14px!important;color:#7f1d1d!important;font-size:15px!important;line-height:20px!important;font-weight:500!important;text-align:start!important;box-shadow:none!important;z-index:auto!important;unicode-bidi:plaintext}
+.tmcS .ncBox:not([style*="none"]){display:flex!important;flex-direction:column!important;gap:0!important}
+.tmcS .ncBox>*,.tmcS .ncBox>div>*{display:block!important;margin:0!important;padding:0!important;font-size:15px!important;line-height:20px!important;flex:none!important;width:auto!important}
+.tmcS .ncBox b{font-size:17px!important;line-height:22px!important;font-weight:700!important;margin:0 0 4px!important}
+.tmcS .ncBox button{width:100%!important;height:58px!important;min-height:58px!important;margin:12px 0 0!important;padding:0 14px!important;font-size:18px!important;line-height:normal!important;font-weight:700!important;border:0!important;border-radius:12px!important;background:#dc2626!important;color:#fff!important}
+/*END TMC-SIGNIN*/
+</style></head><body>
+<div id="app"></div>
+<script>
+"use strict";
+(function(){
+const C=window.CONFIG,P=C.APP_ID+"_";            // every localStorage key starts with APP_ID_
+const CACHE_PREFIX=(C.CACHE_PREFIX||C.APP_ID)+"-v"; // every cache name starts with CACHE_PREFIX-v (default APP_ID)
+document.documentElement.style.setProperty("--c",C.COLOR);document.documentElement.style.setProperty("--cd",C.COLOR_DARK);document.documentElement.style.setProperty("--bg",C.BG);document.documentElement.style.setProperty("--rc",C.REPORT_COLOR||"#1B7F3B");
+const L={get:k=>localStorage.getItem(P+k),set:(k,v)=>localStorage.setItem(P+k,v),del:k=>localStorage.removeItem(P+k),
+  j:(k,d)=>{try{const v=localStorage.getItem(P+k);return v==null?d:JSON.parse(v)}catch(e){return d}},sj:(k,v)=>localStorage.setItem(P+k,JSON.stringify(v))};
+window.TMC={P:P,L:L};
+/* optional join link: .../#k=CODE → saved for this app only, then wiped from the address bar */
+(function(){const m=/(?:^#|&)k=([^&]+)/.exec(location.hash||"");if(!m)return;try{L.set("sycode",decodeURIComponent(m[1]).trim())}catch(e){}
+  try{history.replaceState(null,"",location.pathname+location.search)}catch(e){location.hash=""}})();
+
+/* ---------------- Texts EN / FR / AR ---------------- */
+const T={en:{
+hello:"Hi",reports:"Reports",rpPick:"Choose a report",rpToday:"Today",rpMonth:"This month",rpDates:"Pick dates",rpFrom:"From",rpTo:"To",rpShow:"Show",rpXls:"📥 Download Excel",rpPrint:"🖨️ Print",rpBack:"⬅ Back",rpNone:"No data for these dates.",rpPeriod:"Period",rpDemo:"Notes per person",rpDate:"Date",rpPerson:"Person",rpNotes:"Notes",rpChars:"Letters",phTake:"📷 Take photo",phPick:"🖼️ Choose from phone",phDemo:"Photo (demo)",rpTot:"Total",rpItem:"Item",rpQty:"Count",name:"Your name",nameH:"Type your name",go:"Continue",needName:"Please type your name.",
+pinT:"Enter your PIN",pin:"PIN",pinWrong:"Wrong PIN. Try again.",pinLock:"Too many wrong PINs. Try again in %m min.",other:"Use a different name",
+setT:"Choose a PIN",setH:"4 to 6 numbers. You will use it every time.",pin2:"Type the PIN again",pinBad:"Use 4 to 6 numbers.",pinDiff:"The two PINs are not the same.",save:"Save",
+setupT:"First Admin setup",setupH:"You are the first user. Choose the Admin PIN.",
+waitT:"Waiting for approval",waitH:"%n, the Admin must approve you. Ask the Admin, then tap Check again.",check:"🔄 Check again",
+rejT:"Not approved",rejH:"The Admin did not approve this name. Ask the Admin.",blkT:"Blocked",blkH:"This name is blocked. Ask the Admin.",
+netT:"Internet needed",netH:"Connect to the internet once so the app can load the users.",retry:"🔄 Try again",loading:"Loading…",
+home:"Home",work:"Work",users:"Users",settings:"Settings",share:"Share app",syncNow:"🔄 Sync now",
+phT:"🧩 APP FEATURES GO HERE",phH:"This tab is a placeholder. Each app puts its own screens here.",exT:"Example note (demo)",exAdd:"Save note",fix:"✏️ Fix",fixT:"✏️ Fix a mistake (Admin)",fixSave:"💾 Save fix",fixOnly:"Only the Admin can fix a saved record.",fixed:"fixed by",can:"What I can do",canH:"Ticked = allowed. Ask the Admin to change it.",canEd:"✅ Allowed for",dupT:"Already asked - wait for Admin",dupH:"This name already asked once. Wait for the Admin. If you were approved, type your name and PIN to sign in.",canAdm:"⭐ Admin only: ✏️ Fix, 👥 Approve users",lkFix:"✏️ Fix",lkApp:"👥 Approve users",admOnly:"Admin only",canAll:"⭐ Admin: you can do everything.",noAccess:"You are not allowed to do this.",repT:"📊 Report",expT:"📤 Export",exNone:"No notes yet.",
+synced:"Synced",syncErr:"Sync problem",syncOff:"Sync not set up",offline:"Offline",last:"Last sync",
+pwT:"⚠️ %n change(s) not sent to the Sheet yet",pwOff:"No internet — they will be sent when you are online.",pwDel:"Tap 🔄 Sync now before deleting the app or clearing data, or these changes will be lost.",
+updT:"🆕 A new version is ready",updB:"⬆️ Update now",updChk:"Check for update",updNone:"You have the latest version.",ver:"Version",
+insBtn:"📲 Install app",insIos:"Tap Share ⬆️ then Add to Home Screen ➕",
+shareH:"Scan this code with the other phone, or send the link.",shareB:"📤 Send link",copy:"📋 Copy link",copied:"Copied",close:"Close",
+pend:"Waiting",act:"Approved",rej:"Rejected",blk:"Blocked",approve:"✅ Approve",reject:"❌ Reject",block:"⛔ Block",unblock:"↩️ Unblock",resetPin:"🔑 Reset PIN",admin:"Admin",noPend:"No one is waiting.",
+lang:"Language",sync:"Sync",syncUrl:"Sync link",syncCode:"Sync code",sv:"Saved",logout:"🚪 Log out",logoutQ:"Log out %n?",
+logoutPend:"⚠️ %n change(s) are not sent yet. They stay on this phone and will be sent later. Log out anyway?",
+wipe:"🗑️ Clear this app on this phone",wipeQ:"Delete this app's data on this phone? Other apps are not touched.",wipePend:"⚠️ %n change(s) are NOT sent and will be LOST. Delete anyway?",
+draft:"Your unsaved text was kept.",ncT:"🔴 Not connected",ncH:"The app cannot reach the Sheet. Your work is kept on this phone and sent when it connects.",ncOff:"Sync link missing in this app. Tell the Admin."},
+fr:{
+hello:"Bonjour",reports:"Rapports",rpPick:"Choisir un rapport",rpToday:"Aujourd'hui",rpMonth:"Ce mois",rpDates:"Choisir les dates",rpFrom:"Du",rpTo:"Au",rpShow:"Afficher",rpXls:"📥 Télécharger Excel",rpPrint:"🖨️ Imprimer",rpBack:"⬅ Retour",rpNone:"Aucune donnée pour ces dates.",rpPeriod:"Période",rpDemo:"Notes par personne",rpDate:"Date",rpPerson:"Personne",rpNotes:"Notes",rpChars:"Lettres",phTake:"📷 Prendre une photo",phPick:"🖼️ Choisir dans le téléphone",phDemo:"Photo (démo)",rpTot:"Total",rpItem:"Élément",rpQty:"Nombre",name:"Votre nom",nameH:"Écrivez votre nom",go:"Continuer",needName:"Écrivez votre nom.",
+pinT:"Entrez votre PIN",pin:"PIN",pinWrong:"PIN incorrect. Réessayez.",pinLock:"Trop de PIN erronés. Réessayez dans %m min.",other:"Utiliser un autre nom",
+setT:"Choisissez un PIN",setH:"4 à 6 chiffres. Vous l'utiliserez à chaque fois.",pin2:"Retapez le PIN",pinBad:"Utilisez 4 à 6 chiffres.",pinDiff:"Les deux PIN ne sont pas pareils.",save:"Enregistrer",
+setupT:"Configuration de l'Admin",setupH:"Vous êtes le premier utilisateur. Choisissez le PIN Admin.",
+waitT:"En attente d'approbation",waitH:"%n, l'Admin doit vous approuver. Demandez à l'Admin, puis touchez Vérifier.",check:"🔄 Vérifier",
+rejT:"Non approuvé",rejH:"L'Admin n'a pas approuvé ce nom. Demandez à l'Admin.",blkT:"Bloqué",blkH:"Ce nom est bloqué. Demandez à l'Admin.",
+netT:"Internet nécessaire",netH:"Connectez-vous une fois à internet pour charger les utilisateurs.",retry:"🔄 Réessayer",loading:"Chargement…",
+home:"Accueil",work:"Travail",users:"Utilisateurs",settings:"Réglages",share:"Partager l'app",syncNow:"🔄 Synchroniser",
+phT:"🧩 LES FONCTIONS DE L'APP VONT ICI",phH:"Cet onglet est un emplacement. Chaque app y met ses écrans.",exT:"Note d'exemple (démo)",exAdd:"Enregistrer la note",fix:"✏️ Corriger",fixT:"✏️ Corriger une erreur (Admin)",fixSave:"💾 Enregistrer",fixOnly:"Seul l'Admin peut corriger un enregistrement.",fixed:"corrigé par",can:"Mes droits",canH:"Coché = autorisé. Demandez à l'Admin pour changer.",canEd:"✅ Autorisé pour",dupT:"Déjà demandé - attendez l'Admin",dupH:"Ce nom a déjà demandé. Attendez l'Admin. Si vous êtes accepté, tapez votre nom et PIN.",canAdm:"⭐ Admin seulement : ✏️ Corriger, 👥 Approuver",lkFix:"✏️ Corriger",lkApp:"👥 Approuver",admOnly:"Admin seulement",canAll:"⭐ Admin : vous pouvez tout faire.",noAccess:"Vous n'avez pas le droit de faire ceci.",repT:"📊 Rapport",expT:"📤 Exporter",exNone:"Pas encore de notes.",
+synced:"Synchronisé",syncErr:"Problème de synchro",syncOff:"Synchro non configurée",offline:"Hors ligne",last:"Dernière synchro",
+pwT:"⚠️ %n modification(s) pas encore envoyée(s) à la feuille",pwOff:"Pas d'internet — elles seront envoyées dès que vous serez en ligne.",pwDel:"Touchez 🔄 Synchroniser avant de supprimer l'application ou d'effacer les données, sinon ces modifications seront perdues.",
+updT:"🆕 Une nouvelle version est prête",updB:"⬆️ Mettre à jour",updChk:"Chercher une mise à jour",updNone:"Vous avez la dernière version.",ver:"Version",
+insBtn:"📲 Installer l'application",insIos:"Touchez Partager ⬆️ puis Sur l'écran d'accueil ➕",
+shareH:"Scannez ce code avec l'autre téléphone, ou envoyez le lien.",shareB:"📤 Envoyer le lien",copy:"📋 Copier le lien",copied:"Copié",close:"Fermer",
+pend:"En attente",act:"Approuvé",rej:"Refusé",blk:"Bloqué",approve:"✅ Approuver",reject:"❌ Refuser",block:"⛔ Bloquer",unblock:"↩️ Débloquer",resetPin:"🔑 Réinitialiser PIN",admin:"Admin",noPend:"Personne n'attend.",
+lang:"Langue",sync:"Synchro",syncUrl:"Lien de synchro",syncCode:"Code de synchro",sv:"Enregistré",logout:"🚪 Se déconnecter",logoutQ:"Déconnecter %n ?",
+logoutPend:"⚠️ %n modification(s) pas encore envoyée(s). Elles restent sur ce téléphone et seront envoyées plus tard. Se déconnecter quand même ?",
+wipe:"🗑️ Effacer cette app sur ce téléphone",wipeQ:"Effacer les données de cette app sur ce téléphone ? Les autres apps ne sont pas touchées.",wipePend:"⚠️ %n modification(s) NON envoyée(s) seront PERDUES. Effacer quand même ?",
+draft:"Votre texte non enregistré a été gardé.",ncT:"🔴 Pas connecté",ncH:"L'app n'arrive pas à joindre la feuille. Votre travail reste sur ce téléphone et sera envoyé à la connexion.",ncOff:"Lien de synchro absent dans cette app. Prévenez l'Admin."},
+ar:{
+hello:"مرحبا",reports:"التقارير",rpPick:"اختر تقريرا",rpToday:"اليوم",rpMonth:"هذا الشهر",rpDates:"اختر التواريخ",rpFrom:"من",rpTo:"إلى",rpShow:"عرض",rpXls:"📥 تنزيل Excel",rpPrint:"🖨️ طباعة",rpBack:"⬅ رجوع",rpNone:"لا توجد بيانات لهذه التواريخ.",rpPeriod:"الفترة",rpDemo:"الملاحظات لكل شخص",rpDate:"التاريخ",rpPerson:"الشخص",rpNotes:"الملاحظات",rpChars:"الحروف",phTake:"📷 التقط صورة",phPick:"🖼️ اختر من الهاتف",phDemo:"صورة (تجربة)",rpTot:"المجموع",rpItem:"البند",rpQty:"العدد",name:"اسمك",nameH:"اكتب اسمك",go:"متابعة",needName:"من فضلك اكتب اسمك.",
+pinT:"أدخل رمز PIN",pin:"PIN",pinWrong:"رمز خاطئ. حاول مرة أخرى.",pinLock:"رموز PIN خاطئة كثيرة. حاول مرة أخرى بعد %m دقيقة.",other:"استخدام اسم آخر",
+setT:"اختر رمز PIN",setH:"من 4 إلى 6 أرقام. ستستخدمه كل مرة.",pin2:"اكتب الرمز مرة أخرى",pinBad:"استخدم من 4 إلى 6 أرقام.",pinDiff:"الرمزان غير متطابقين.",save:"حفظ",
+setupT:"إعداد المسؤول الأول",setupH:"أنت أول مستخدم. اختر رمز المسؤول.",
+waitT:"بانتظار الموافقة",waitH:"%n، يجب أن يوافق المسؤول عليك. اسأل المسؤول ثم اضغط تحقق مرة أخرى.",check:"🔄 تحقق مرة أخرى",
+rejT:"غير موافق عليه",rejH:"لم يوافق المسؤول على هذا الاسم. اسأل المسؤول.",blkT:"محظور",blkH:"هذا الاسم محظور. اسأل المسؤول.",
+netT:"يلزم الإنترنت",netH:"اتصل بالإنترنت مرة واحدة ليتم تحميل المستخدمين.",retry:"🔄 حاول مرة أخرى",loading:"جار التحميل…",
+home:"الرئيسية",work:"العمل",users:"المستخدمون",settings:"الإعدادات",share:"مشاركة التطبيق",syncNow:"🔄 مزامنة الآن",
+phT:"🧩 ميزات التطبيق توضع هنا",phH:"هذا التبويب مكان مخصص. كل تطبيق يضع شاشاته هنا.",exT:"ملاحظة مثال (تجربة)",exAdd:"حفظ الملاحظة",fix:"✏️ تصحيح",fixT:"✏️ تصحيح خطأ (المدير)",fixSave:"💾 حفظ التصحيح",fixOnly:"المدير فقط يمكنه تصحيح سجل محفوظ.",fixed:"صححه",can:"ما يمكنني فعله",canH:"المؤشَّر = مسموح. اطلب من المدير التغيير.",canEd:"✅ مسموح لـ",dupT:"تم الطلب - انتظر المدير",dupH:"هذا الاسم طلب من قبل. انتظر المدير. إذا تمت الموافقة، اكتب اسمك والرقم السري.",canAdm:"⭐ للمدير فقط: ✏️ تصحيح، 👥 قبول المستخدمين",lkFix:"✏️ تصحيح",lkApp:"👥 قبول المستخدمين",admOnly:"للمدير فقط",canAll:"⭐ المدير: يمكنك فعل كل شيء.",noAccess:"غير مسموح لك بهذا.",repT:"📊 تقرير",expT:"📤 تصدير",exNone:"لا توجد ملاحظات بعد.",
+synced:"تمت المزامنة",syncErr:"مشكلة في المزامنة",syncOff:"المزامنة غير مُعدة",offline:"غير متصل",last:"آخر مزامنة",
+pwT:"⚠️ %n تغيير لم يُرسل إلى الجدول بعد",pwOff:"لا يوجد إنترنت — سيتم الإرسال عند الاتصال.",pwDel:"اضغط 🔄 مزامنة الآن قبل حذف التطبيق أو مسح البيانات، وإلا ستضيع هذه التغييرات.",
+updT:"🆕 نسخة جديدة جاهزة",updB:"⬆️ تحديث الآن",updChk:"البحث عن تحديث",updNone:"لديك آخر نسخة.",ver:"النسخة",
+insBtn:"📲 تثبيت التطبيق",insIos:"اضغط مشاركة ⬆️ ثم إضافة إلى الشاشة الرئيسية ➕",
+shareH:"امسح هذا الرمز بالهاتف الآخر، أو أرسل الرابط.",shareB:"📤 إرسال الرابط",copy:"📋 نسخ الرابط",copied:"تم النسخ",close:"إغلاق",
+pend:"بانتظار",act:"موافق عليه",rej:"مرفوض",blk:"محظور",approve:"✅ موافقة",reject:"❌ رفض",block:"⛔ حظر",unblock:"↩️ إلغاء الحظر",resetPin:"🔑 إعادة تعيين الرمز",admin:"مسؤول",noPend:"لا أحد بالانتظار.",
+lang:"اللغة",sync:"المزامنة",syncUrl:"رابط المزامنة",syncCode:"رمز المزامنة",sv:"تم الحفظ",logout:"🚪 تسجيل الخروج",logoutQ:"تسجيل خروج %n؟",
+logoutPend:"⚠️ %n تغيير لم يُرسل بعد. ستبقى على هذا الهاتف وتُرسل لاحقا. تسجيل الخروج على أي حال؟",
+wipe:"🗑️ مسح هذا التطبيق من هذا الهاتف",wipeQ:"حذف بيانات هذا التطبيق من هذا الهاتف؟ التطبيقات الأخرى لا تتأثر.",wipePend:"⚠️ %n تغيير لم يُرسل وسيضيع. الحذف على أي حال؟",
+draft:"تم الاحتفاظ بنصك غير المحفوظ.",ncT:"🔴 غير متصل",ncH:"لا يستطيع التطبيق الوصول إلى الجدول. عملك محفوظ على هذا الهاتف وسيُرسل عند الاتصال.",ncOff:"رابط المزامنة غير موجود في هذا التطبيق. أخبر المسؤول."}};
+let lang=L.get("lang")||((navigator.language||"en").slice(0,2)==="fr"?"fr":(navigator.language||"").slice(0,2)==="ar"?"ar":"en");
+if(!T[lang])lang="en";
+const t=k=>(T[lang]&&T[lang][k]!=null)?T[lang][k]:(T.en[k]!=null?T.en[k]:k);
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const $=id=>document.getElementById(id);
+function applyLang(){document.documentElement.lang=lang;document.documentElement.dir=lang==="ar"?"rtl":"ltr";document.title=C.NAME}
+window.TMC.T=T;window.TMC.t=t;
+
+/* ---------------- Name rule (shared by all TMC apps) ---------------- */
+const ADMIN_KEY=C.ADMIN_ALIASES[0];
+const NK=x=>{const n=String(x||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[\s.]+/g,"");return C.ADMIN_ALIASES.indexOf(n)>=0?ADMIN_KEY:n};
+const clean=x=>String(x||"").trim().replace(/\s+/g," ");
+window.TMC.NK=NK;
+
+/* ---------------- Records + sync ---------------- */
+let R=L.j("recs",{}),dirty=L.j("dirty",{});
+let dev=L.get("dev");if(!dev){dev="d"+Math.random().toString(36).slice(2,10);L.set("dev",dev)}
+const saveR=()=>{L.sj("recs",R);L.sj("dirty",dirty)};
+const all=kind=>Object.keys(R).map(k=>R[k]).filter(r=>r.kind===kind&&!r.del).map(r=>r.data);
+/* ADMIN FIX RULE: staff may only ADD. Changing/deleting an existing record (not "u") is Admin-only; the server enforces it too. */
+/* PERMISSIONS: the Admin ticks what each person may do (CONFIG.PERMS). Admin = everything. The server checks too. */
+function permsOf(u){return u&&Array.isArray(u.perms)?u.perms:(C.PERM_DEFAULT||[])}
+function can(p,u){u=u||me();return !!u&&(!!u.admin||permsOf(u).indexOf(p)>=0)}
+function canKind(kind,what,u){const k=(C.PERM_KINDS||{})[kind];return !k||!k[what]||can(k[what],u)}
+function permLab(p){return p[lang]||p.en}
+function canFix(){const m=me();return !!(m&&m.admin)}
+function put(kind,id,data){const k=kind+":"+id;if(kind!=="u"&&R[k]&&!R[k].del&&!canFix()){alert(t("fixOnly"));return false}if(kind!=="u"&&!R[k]&&!canKind(kind,"add")){alert(t("noAccess"));return false}const u=Math.max(Date.now(),R[k]?R[k].u+1:0);R[k]={kind:kind,id:String(id),u:u,del:0,data:data};dirty[k]=1;saveR();syncSoon();}
+function remove(kind,id){const k=kind+":"+id;if(kind==="u")return false;if(kind!=="u"&&!canFix()){alert(t("fixOnly"));return false}const u=Math.max(Date.now(),R[k]?R[k].u+1:0);R[k]={kind:kind,id:String(id),u:u,del:1,data:null};dirty[k]=1;saveR();syncSoon();}
+/* fix(): Admin changes one field; old value, Admin name and time are kept in data._fix (audit column) and the server "Fix log" tab. */
+function fix(kind,id,field,val){if(!canFix())return false;const k=kind+":"+id,r=R[k];if(!r||r.del)return false;const d=Object.assign({},r.data),old=d[field];if(String(old)===String(val))return true;
+  d._fix=(Array.isArray(d._fix)?d._fix:[]).concat([{f:field,old:old,by:me().name,at:new Date().toISOString()}]);d[field]=val;return put(kind,id,d)!==false}
+function fixBtn(kind,id,field){return canFix()?`<button type="button" class="fixB" data-k="${esc(kind)}" data-i="${esc(id)}" data-f="${esc(field)}">${esc(t("fix"))}</button>`:""}
+function fixedNote(d){const f=d&&Array.isArray(d._fix)&&d._fix[d._fix.length-1];return f?`<span class="hint fixN">✏️ ${esc(t("fixed"))} ${esc(f.by)} · ${esc(String(f.at).slice(0,16).replace("T"," "))}</span>`:""}
+function bindFix(){if(!canFix())return;document.querySelectorAll(".fixB").forEach(b=>b.onclick=()=>{const kind=b.dataset.k,id=b.dataset.i,f=b.dataset.f,r=R[kind+":"+id];if(!r)return;
+  const m=document.createElement("div");m.className="modal";m.innerHTML=`<div class="card"><h2>${esc(t("fixT"))}</h2><textarea id="fixV" rows="3" spellcheck="true" autocorrect="on"></textarea><button type="button" id="fixS">${esc(t("fixSave"))}</button><button type="button" class="sec" id="fixX">${esc(t("close"))}</button></div>`;
+  document.body.appendChild(m);$("fixV").value=r.data[f]==null?"":String(r.data[f]);const x=()=>m.remove();$("fixX").onclick=x;
+  $("fixS").onclick=()=>{const v=$("fixV").value.trim();if(!v)return;fix(kind,id,f,v);x();render()}})}
+window.TMC.fix=fix;window.TMC.canFix=canFix;window.TMC.fixBtn=fixBtn;window.TMC.bindFix=bindFix;window.TMC.fixedNote=fixedNote;
+window.TMC.can=can;window.TMC.canKind=canKind;window.TMC.permsOf=permsOf;
+window.TMC.put=put;window.TMC.remove=remove;window.TMC.all=all;
+const sUrl=()=>L.get("syurl")||C.SYNC_URL,sCode=()=>L.get("sycode")||C.SYNC_CODE;
+const sTok=()=>L.get("tok")||"";
+const tokMode=()=>!!(sUrl()&&!sCode());           // VER 4: no code → name+PIN session token
+const syncOn=()=>!!(sUrl()&&(sCode()||sTok()));
+let netBad=false;                                   // true only when the server can't be reached or rejects us
+function api(body){return fetch(sUrl(),{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(Object.assign({device:dev},body))})
+  .then(r=>r.json()).then(j=>{netBad=false;paintSync();return j},e=>{netBad=true;paintSync();throw e})}
+window.TMC.api=api;
+const pending=()=>Object.keys(dirty).length;
+let sState="",busy=null,tmr=null,fails=0;
+function syncSoon(ms){clearTimeout(tmr);tmr=setTimeout(()=>syncNow(),ms==null?800:ms)}
+let relog=null;
+function syncNow(){
+  // token phone signed in offline (or token lost): get a new token with this phone's own stored PIN hash
+  if(tokMode()&&!sTok()){const u=me();if(!u||!u.pinH)return Promise.resolve(false);
+    if(!relog)relog=api({action:"login",id:u.id,pinH:u.pinH}).then(j=>{relog=null;if(j&&j.ok){L.set("tok",j.token);return syncNow()}if(j&&j.error!=="locked"){signOut();render()}return false},()=>{relog=null;syncSoon(30000);return false});
+    return relog}
+  if(!syncOn())return Promise.resolve(false);
+  if(busy)return busy;
+  const keys=Object.keys(dirty),sent={};
+  const changes=keys.map(k=>{const r=R[k];sent[k]=r.u;return {kind:r.kind,id:r.id,u:r.u,del:r.del,data:r.data}});
+  sState="busy";paintSync();
+  busy=fetch(sUrl(),{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({action:"sync",code:sCode()||undefined,token:sTok()||undefined,device:dev,since:+(L.get("since")||0),changes:changes})})
+  .then(r=>r.json()).then(j=>{
+    if(j&&!j.ok&&(j.error==="bad_token"||j.error==="not_active")&&!sCode()){L.del("tok")}
+    if(!j||!j.ok)throw new Error(j&&j.error||"sync");
+    Object.keys(sent).forEach(k=>{if(R[k]&&R[k].u===sent[k])delete dirty[k]});
+    (j.records||[]).forEach(s=>{const k=s.kind+":"+s.id,u=+s.u||0,loc=R[k];if(loc&&(loc.u>u||(dirty[k]&&loc.u>=u)))return;
+      let d=s.data;if(typeof d==="string"){try{d=d?JSON.parse(d):null}catch(e){d=null}}if(s.kind==="u"&&(s.del||!d)&&loc&&!loc.del)return;if(s.kind==="u"&&d&&!d.pinH&&d.hasPin&&!d.pinReset&&loc&&loc.data&&loc.data.pinH){d.pinH=loc.data.pinH;d.salt=loc.data.salt}R[k]={kind:s.kind,id:String(s.id),u:u,del:s.del?1:0,data:d}});
+    L.set("since",String(j.now||Date.now()));L.set("lastOk",String(Date.now()));saveR();fails=0;sState="ok";netBad=false;return true})
+  .catch(e=>{fails++;sState="err";netBad=true;syncSoon(navigator.onLine?Math.min(120000,5000*Math.pow(2,fails-1)):60000);return false})
+  .then(ok=>{busy=null;paintSync();try{onData()}catch(e){console.warn(e)}if(ok&&pending())syncSoon(300);return ok});
+  return busy;
+}
+/* Restore a backup: MERGES records only. Never removes users or any record; a backup with no users keeps the current users. */
+function restoreBackup(b){const recs=Array.isArray(b)?b:(b&&(b.records||b.R))||[];const list=Array.isArray(recs)?recs:Object.keys(recs).map(k=>recs[k]);let n=0;
+  list.forEach(s=>{if(!s||!s.kind||s.id==null||s.del)return;let d=s.data;if(typeof d==="string"){try{d=JSON.parse(d)}catch(e){return}}if(d==null||typeof d!=="object")return;
+    const k=s.kind+":"+s.id,loc=R[k];if(loc&&!loc.del&&(+s.u||0)<=loc.u)return;if(s.kind==="u"&&loc&&!loc.del)return;
+    R[k]={kind:s.kind,id:String(s.id),u:Math.max(+s.u||0,loc?loc.u+1:0),del:0,data:d};dirty[k]=1;n++});
+  saveR();syncSoon();return n}
+window.TMC.restoreBackup=restoreBackup;
+window.TMC.syncNow=syncNow;window.TMC.pending=pending;
+addEventListener("online",()=>syncSoon(100));
+document.addEventListener("visibilitychange",()=>{if(!document.hidden){syncSoon(100);checkUpdate()}});
+setInterval(()=>{if(!document.hidden)syncNow()},60000);
+
+/* ---------------- Users / session ---------------- */
+const users=()=>all("u");
+const approved=u=>u&&u.status==="active";
+const hasAdmin=()=>users().some(u=>approved(u)&&u.admin);
+async function H(pin,salt){const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(salt+":"+pin));return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,"0")).join("")}
+function me(){const id=L.get("uid"),ok=L.get("uok");if(!id||!ok)return null;const u=users().find(x=>x.id===id);if(!u||!approved(u)||ok!==u.id+":"+u.pinH)return null;return u}
+window.TMC.me=me;
+function signOut(){L.del("uid");L.del("uok");if(tokMode())L.del("tok")}
+function fails_(k){const F=L.j("pinFail",{}),now=Date.now();return (F[k]||[]).filter(x=>now-x<36e5)}
+function addFail(k){const F=L.j("pinFail",{});F[k]=fails_(k).concat([Date.now()]);L.sj("pinFail",F)}
+function clearFail(k){const F=L.j("pinFail",{});delete F[k];L.sj("pinFail",F)}
+
+/* ---------------- Screens ---------------- */
+let tab="home",flow=null; // flow = sign-in sub-screen
+function card(inner){return `<div class="full"><div class="signin"><div class="card"><img class="logo" src="icons/icon-192.png?v=5" alt="">${inner}${insHTML()}</div><div id="ncW" class="bar ncW ncBox"></div></div></div>`}
+function langBtns(){return `<div class="langs"><select id="langSel" aria-label="Language">${["en","fr","ar"].map(l=>`<option value="${l}"${l===lang?" selected":""}>🌐 ${l==="en"?"English":l==="fr"?"Français":"العربية"}</option>`).join("")}</select></div>`}
+function pinInput(id,ph){return `<div class="pw"><input id="${id}" name="${C.APP_ID}-${id}-${Math.random().toString(36).slice(2,7)}" class="msk" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-form-type="other" placeholder="${esc(ph)}"><button type="button" class="eye" data-eye="${id}">👁</button></div>`}
+function render(){
+  applyLang();const A=$("app");
+  const u=me();
+  if(!u){A.innerHTML=signinHTML();bindSignin();return}
+  flow=null;
+  if(tab==="users"&&!u.admin)tab="home";if(tab==="work"&&!workOk(u))tab="home";if(tab==="reports"&&!(repOk(u)&&REPORTS.length))tab="home";
+  A.innerHTML=`<header id="hBand"><img src="icons/icon-192.png?v=5" alt=""><div class="t">${esc(C.SHORT)}</div><span class="hS" id="hS"><span id="sDot" class="dot"></span><span id="sTime" class="sTime"></span></span><select id="hLang" class="hLang" aria-label="Language">${["en","fr","ar"].map(l=>`<option value="${l}"${l===lang?" selected":""}>${l.toUpperCase()}</option>`).join("")}</select></header>
+  <main><div id="ncW" class="bar ncW"></div><div id="updW" class="bar updW"></div><div id="pendW" class="bar pendW"></div><div id="view">${viewHTML(u)}</div></main>
+  <nav class="tabs">${tabsOf(u).map(x=>navBtn(...x)).join("")}</nav>`;
+  bindMain(u);paintSync();paintUpd();
+}
+/* ONE list feeds the bottom tabs AND the Home tiles (same screens, icons, names, order) */
+function tabsOf(u){return [["home","🏠"],...(workOk(u)?[["work","🧩"]]:[]),...(repOk(u)&&REPORTS.length?[["reports","📊"]]:[]),["can","✅"],...(u.admin?[["users","👥",users().filter(x=>x.status==="pending").length]]:[]),["settings","⚙️"]]}
+function repOk(u){u=u||me();return !!u&&(!!u.admin||can("reports",u))}
+function workOk(u){return (C.PERMS||[]).length===0||["view","add","reports","export"].some(p=>can(p,u))}
+function navBtn(k,ic,n){return `<button type="button" data-tab="${k}" class="${tab===k?"on":""}"><span class="ticon">${ic}</span><span class="tlab">${esc(t(k))}</span>${n?`<span class="badge">${n}</span>`:""}</button>`}
+window.TMC.render=render;
+
+function signinHTML(){
+  const f=flow||{s:"name"};
+  if(f.s==="loading")return card(`<h2>${esc(t("loading"))}</h2>`);
+  if(f.s==="net")return card(`<h2>📶 ${esc(t("netT"))}</h2><p class="hint">${esc(t("netH"))}</p><button type="button" id="fRetry">${esc(t("retry"))}</button><button type="button" class="sec" id="fOther">${esc(t("other"))}</button>`);
+  if(f.s==="pin")return card(`<h2>${esc(t("pinT"))}</h2><p><b>${esc(f.u.name)}</b></p>${pinInput("fPin",t("pin"))}<p class="err" id="fErr"></p><button type="button" id="fGo">${esc(t("go"))}</button><button type="button" class="sec" id="fOther">${esc(t("other"))}</button>`);
+  if(f.s==="set")return card(`<h2>${esc(f.setup?t("setupT"):t("setT"))}</h2><p><b>${esc(f.u.name)}</b></p><p class="hint">${esc(f.setup?t("setupH"):t("setH"))}</p>${pinInput("fPin",t("pin"))}${pinInput("fPin2",t("pin2"))}<p class="err" id="fErr"></p><button type="button" id="fSet">${esc(t("save"))}</button><button type="button" class="sec" id="fOther">${esc(t("other"))}</button>`);
+  if(f.s==="wait")return card(`<h2>⏳ ${esc(t("waitT"))}</h2><p class="hint">${esc(t("waitH").replace("%n",f.name))}</p><button type="button" id="fCheck">${esc(t("check"))}</button><button type="button" class="sec" id="fOther">${esc(t("other"))}</button>`);
+  if(f.s==="dup")return card(`<h2 id="dupT">✋ ${esc(t("dupT"))}</h2><p class="hint" style="font-size:18px">${esc(t("dupH"))}</p><button type="button" id="fCheck" style="min-height:60px">${esc(t("check"))}</button><button type="button" class="sec" id="fOther" style="min-height:60px">${esc(t("other"))}</button>`);
+  if(f.s==="rej")return card(`<h2>❌ ${esc(t("rejT"))}</h2><p class="hint">${esc(t("rejH"))}</p><button type="button" class="sec" id="fOther">${esc(t("other"))}</button>`);
+  if(f.s==="blk")return card(`<h2>⛔ ${esc(t("blkT"))}</h2><p class="hint">${esc(t("blkH"))}</p><button type="button" class="sec" id="fOther">${esc(t("other"))}</button>`);
+  return `<div class="full tmcS" style="--tmcS-c:${esc(C.COLOR)};--tmcS-cd:${esc(C.COLOR_DARK)}"><div class="signin"><div class="card"><img class="tmcS-logo logo" src="icons/icon-192.png?v=5" width="84" height="84" alt=""><h2 class="tmcS-t">${esc(C.NAME)}</h2><select id="langSel" class="tmcS-lang" aria-label="Language">${["en","fr","ar"].map(l=>`<option value="${l}"${l===lang?" selected":""}>🌐 ${l==="en"?"English":l==="fr"?"Français":"العربية"}</option>`).join("")}</select><input id="fName" class="tmcS-name" name="${C.APP_ID}-who" type="text" autocomplete="off" autocapitalize="words" spellcheck="true" autocorrect="on" data-lpignore="true" data-1p-ignore="true" placeholder="${esc(t("nameH"))}" value="${esc(L.get("lastName")||"")}"><p class="err tmcS-err" id="fErr"></p><button type="button" id="fName2" class="tmcS-go">${esc(t("go"))}</button>${insHTML()}</div><div id="ncW" class="bar ncW ncBox" role="alert"></div></div></div>`;
+}
+function err(m){const e=$("fErr");if(e){e.textContent=m;e.style.display="block"}}
+function bindCommon(){
+  document.querySelectorAll("#langSel").forEach(b=>b.onchange=()=>{lang=b.value;L.set("lang",lang);render()});
+  document.querySelectorAll("[data-eye]").forEach(b=>b.onclick=()=>{const i=$(b.dataset.eye);i.classList.toggle("shw")});
+  bindIns();
+}
+function bindSignin(){
+  bindCommon();
+  const on=(id,f)=>{const e=$(id);if(e)e.onclick=f};
+  on("fOther",()=>{flow=null;render()});
+  on("fName2",()=>startName($("fName").value));
+  const n=$("fName");if(n)n.onkeydown=e=>{if(e.key==="Enter")startName(n.value)};
+  on("fRetry",()=>startName(flow.name));
+  on("fCheck",()=>{if(tokMode())return srvLookup(flow.name,false);syncNow().then(()=>lookup(flow.name))});
+  on("fGo",checkPin);on("fSet",setPin);
+  const p=$("fPin");if(p){p.focus();p.onkeydown=e=>{if(e.key==="Enter")(flow.s==="pin"?checkPin:setPin)()}}
+}
+/* VER 4 token flow: ask the script who this name is (works on a fresh phone with no code) */
+async function startName(raw){
+  const name=clean(raw);if(!name)return err(t("needName"));
+  L.set("lastName",name);
+  if(tokMode())return srvLookup(name,true);
+  // fresh phone / reinstall: pull everything from the Sheet BEFORE matching the name
+  if(syncOn()&&!(+(L.get("since")||0)>0)){flow={s:"loading",name:name};render();await syncNow();
+    if(!(+(L.get("since")||0)>0)&&!users().length){flow={s:"net",name:name};render();return}}
+  lookup(name);
+}
+async function srvLookup(name,reg){
+  flow={s:"loading",name:name};render();
+  let j;try{j=await api({action:"status",name:name});if(j&&j.ok&&j.state==="none"&&reg)j=await api({action:"register",name:name})}catch(e){j=null}
+  if(!j||!j.ok){if(users().length)return lookup(name,true);flow={s:"net",name:name};return render()}
+  const st=j.state;
+  if(st==="active"){const u=users().find(x=>x.id===j.id)||{id:j.id,name:j.name};flow={s:j.hasPin?"pin":"set",u:Object.assign({},u,{name:j.name,salt:j.salt||u.salt}),name:name,srv:1};return render()}
+  if(st==="setup"){flow={s:"set",setup:true,u:{id:"",name:C.ADMIN_NAME},name:name,srv:1};return render()}
+  if(st==="blocked"){flow={s:"blk",name:name};return render()}
+  if(st==="rejected"){flow={s:"rej",name:name};return render()}
+  if(st==="dup"||(st==="pending"&&j.other)){flow={s:"dup",name:name,srv:1};return render()}  // ONE request per name per app
+  flow={s:"wait",name:name,srv:1};render();
+}
+async function gotToken(j,u){
+  L.set("tok",j.token);L.del("since");await syncNow();
+  const me_=users().find(x=>x.id===j.id);
+  if(!me_){flow={s:"net",name:flow&&flow.name};return render()}
+  if(!me_.pinH&&u&&u.pinH){me_.pinH=u.pinH;me_.salt=u.salt;saveR()}
+  L.set("uid",me_.id);L.set("uok",me_.id+":"+me_.pinH);tab="home";flow=null;render();
+}
+function lookup(name,localOnly){
+  if(tokMode()&&!localOnly)return srvLookup(name,true);
+  const K=NK(name),all_=users().filter(u=>NK(u.name)===K),ok=all_.filter(approved);
+  if(ok.length===1){if(!ok[0].pinH&&ok[0].hasPin&&!tokMode()&&navigator.onLine&&!localOnly)return srvLookup(name,true);if((tokMode()||ok[0].hasPin)&&!ok[0].pinH){flow={s:"net",name:name};return render()}  // token phones only hold their own PIN hash
+    flow={s:ok[0].pinH?"pin":"set",u:ok[0],name:name};return render()}
+  if(ok.length===0){
+    if(all_.some(u=>u.status==="blocked")){flow={s:"blk",name:name};return render()}
+    if(all_.some(u=>u.status==="rejected")){flow={s:"rej",name:name};return render()}
+    if(!hasAdmin()&&K===ADMIN_KEY){flow={s:"set",setup:true,u:{id:"u"+Date.now(),name:C.ADMIN_NAME,status:"active",admin:1,dev:dev,at:new Date().toISOString()},name:name};return render()}
+  }
+  // no single approved match (none, or 2+ sharing the key): a normal approval request
+  if(tokMode()){flow={s:"net",name:name};return render()}  // token phones register on the server only
+  const own=users().find(u=>u.status==="pending"&&NK(u.name)===K&&(ok.length<2||(u.dev===dev&&clean(u.name).toLowerCase()===name.toLowerCase())));
+  if(!own&&ok.length<2&&users().some(u=>NK(u.name)===K&&(u.status==="pending"||u.status==="active"))){flow={s:"dup",name:name};return render()}  // ONE request per name per app
+  if(!own){const r={id:"r"+Date.now(),name:name,status:"pending",dev:dev,at:new Date().toISOString()};put("u",r.id,r)}
+  flow={s:"wait",name:name};render();
+}
+async function checkPin(){
+  const u=flow.u,k=NK(u.name),v=$("fPin").value;
+  let F=fails_(k);
+  if(F.length>=5){$("fPin").value="";return err(t("pinLock").replace("%m",Math.max(1,Math.ceil((F[0]+36e5-Date.now())/6e4))))}
+  if(flow.srv&&navigator.onLine){let j=null;try{j=await api({action:"login",id:u.id,pinH:await H(v,u.salt)})}catch(e){}
+    if(j&&j.ok){clearFail(k);return gotToken(j,Object.assign({},u,{pinH:await H(v,u.salt)}))}
+    if(j){addFail(k);$("fPin").value="";return err(j.error==="locked"?t("pinLock").replace("%m",Math.max(1,Math.ceil(((j.until||Date.now()+36e5)-Date.now())/6e4))):t("pinWrong"))}}
+  if(u.pinH&&await H(v,u.salt)===u.pinH){clearFail(k);L.set("uid",u.id);L.set("uok",u.id+":"+u.pinH);tab="home";flow=null;render();return}
+  addFail(k);F=fails_(k);$("fPin").value="";
+  err(F.length>=5?t("pinLock").replace("%m",60):t("pinWrong"));
+}
+async function setPin(){
+  const a=$("fPin").value,b=$("fPin2").value;
+  if(!/^[0-9]{4,6}$/.test(a))return err(t("pinBad"));if(a!==b)return err(t("pinDiff"));
+  const u=Object.assign({},flow.u),salt=Math.random().toString(36).slice(2,12);u.salt=salt;u.pinH=await H(a,salt);
+  if(flow.srv){let j=null;try{j=await api({action:"setpin",id:u.id,setup:flow.setup?1:0,name:flow.name,salt:salt,pinH:u.pinH})}catch(e){}
+    if(j&&j.ok)return gotToken(j,u);return err(j?j.error:t("ncT"))}
+  put("u",u.id,u);L.set("uid",u.id);L.set("uok",u.id+":"+u.pinH);tab="home";flow=null;render();
+}
+
+/* ---------------- Main views ---------------- */
+function viewHTML(u){
+  if(tab==="work")return workHTML(u);
+  if(tab==="users")return usersHTML(u);
+  if(tab==="settings")return settingsHTML(u);
+  if(tab==="can")return canHTML(u);
+  if(tab==="reports")return repScreenHTML(u);
+  const np=users().filter(x=>x.status==="pending").length;
+  return `<div class="box hhero" id="hHero"><img src="icons/icon-192.png?v=5" alt="" width="64" height="64"><div><h2>${esc(C.NAME)}</h2><div id="hDate">${esc(new Date().toLocaleDateString(lang==="ar"?"ar-TD":lang==="fr"?"fr-FR":"en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric"}))}</div><div class="hhi" id="hHello">👋 ${esc(t("hello"))}, ${esc(u.name)}</div></div></div><button type="button" class="sec loBand" id="hOut">${esc(t("logout"))}</button>
+  <div class="tiles">${tabsOf(u).filter(x=>x[0]!=="home").map(([k,ic,n])=>`<button type="button" class="tile" data-tab="${k}"${k==="can"?' id="hCan"':""}><b>${ic}</b>${esc(t(k))}${n?` (${n})`:""}</button>`).join("")}</div>${/* SERVICE HOOK 1/3 (approved): app list on Home */""}${window.TMC.homeExtra?window.TMC.homeExtra(u):""}`;
+}
+/* ---- PHOTO: every photo field = 2 big buttons (camera OR phone gallery), same handler ----
+   photoHTML(id) -> HTML; bindPhoto(id, cb) -> cb(dataUrl) after resize/compress (max 1280px, JPEG 0.7). */
+function photoHTML(id){return `<div class="phPick" id="${id}"><label class="phCam"><input type="file" accept="image/*" capture="environment" data-ph="${id}">${esc(t("phTake"))}</label><label class="alt phGal"><input type="file" accept="image/*" data-ph="${id}">${esc(t("phPick"))}</label></div>`}
+function shrinkPhoto(file,max,q){return new Promise((ok,no)=>{const r=new FileReader();r.onerror=no;r.onload=()=>{const im=new Image();im.onerror=no;im.onload=()=>{const k=Math.min(1,(max||1280)/Math.max(im.width,im.height));const c=document.createElement("canvas");c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext("2d").drawImage(im,0,0,c.width,c.height);ok(c.toDataURL("image/jpeg",q||0.7))};im.src=r.result};r.readAsDataURL(file)})}
+function bindPhoto(id,cb){document.querySelectorAll(`input[data-ph="${id}"]`).forEach(i=>i.onchange=()=>{const f=i.files&&i.files[0];if(!f)return;window.TMC.lastPhotoFrom=i.hasAttribute("capture")?"camera":"phone";shrinkPhoto(f).then(cb).catch(()=>{});i.value=""})}
+window.TMC.photoHTML=photoHTML;window.TMC.bindPhoto=bindPhoto;window.TMC.shrinkPhoto=shrinkPhoto;
+/* ---- REPORT: green company table (CONFIG REPORT_COLOR). rows=[[label,value],...] ---- */
+function reportHTML(title,rows){const tot=rows.reduce((a,r)=>a+(+r[1]||0),0);return `<div class="repH">📊 ${esc(title)}</div><table class="rep"><thead><tr><th>${esc(t("rpItem"))}</th><th>${esc(t("rpQty"))}</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r[0])}</td><td>${esc(r[1])}</td></tr>`).join("")}</tbody><tfoot><tr><td>${esc(t("rpTot"))}</td><td>${tot}</td></tr></tfoot></table>`}
+window.TMC.reportHTML=reportHTML;
+
+/* ==== STANDARD REPORTS SCREEN (every app) ====
+   TMC.addReport({id, title:{en,fr,ar}|"key", cols:[{key,label:{en,fr,ar}|"key",num:true,d:0,sum:true}], rows:(from,to)=>[{key:value}], totalLabel?})
+   - from/to = "YYYY-MM-DD" (inclusive). Rows are filtered by the app. Totals = sum of cols with sum:true.
+   - Seen only by Admin or users with the 📊 Reports tick. Green REPORT_COLOR table, Excel (SUM formulas), Print, Back. */
+const REPORTS=[];let rp={id:null,p:"today",from:"",to:""};
+function addReport(d){const i=REPORTS.findIndex(r=>r.id===d.id);if(i>=0)REPORTS[i]=d;else REPORTS.push(d);return d}
+const tx=v=>v==null?"":typeof v==="object"?(v[lang]||v.en||""):t(v);
+const ymd=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+function rpRange(){const n=new Date(),td=ymd(n);if(rp.p==="month")return [td.slice(0,8)+"01",ymd(new Date(n.getFullYear(),n.getMonth()+1,0))];if(rp.p==="pick"){let f=rp.from||td,to=rp.to||f;if(to<f){const x=f;f=to;to=x}return [f,to]}return [td,td]}
+function rpData(def){const [f,to]=rpRange(),rows=(def.rows(f,to)||[]),tot={};def.cols.forEach(c=>{if(c.sum)tot[c.key]=rows.reduce((a,r)=>a+(+r[c.key]||0),0)});return {f:f,to:to,rows:rows,tot:tot}}
+const fmtN=(v,d)=>v==null||v===""?"":(+v).toFixed(d||0);
+/* table in the company green (same look as TMC.reportHTML) */
+function repTable(def,D){const cs=def.cols;return `<div class="repH">📊 ${esc(tx(def.title))}</div><p class="hint" id="rpPer">${esc(t("rpPeriod"))}: ${esc(D.f===D.to?D.f:D.f+" → "+D.to)}</p><table class="rep"><thead><tr>${cs.map(c=>`<th${c.num?' class="nm"':""}>${esc(tx(c.label))}</th>`).join("")}</tr></thead><tbody>${D.rows.length?D.rows.map(r=>`<tr${r._red?' class="red" style="background:#dc2626;color:#fff;font-weight:800"':""}>${cs.map(c=>`<td${c.num?' class="nm"':""}>${esc(c.num?fmtN(r[c.key],c.d):r[c.key])}</td>`).join("")}</tr>`).join(""):`<tr><td colspan="${cs.length}">${esc(t("rpNone"))}</td></tr>`}</tbody><tfoot><tr>${cs.map((c,i)=>`<td${c.num?' class="nm"':""}>${i===0?esc(tx(def.totalLabel||"rpTot")):c.sum?esc(fmtN(D.tot[c.key],c.d)):""}</td>`).join("")}</tr></tfoot></table>`}
+const XL=(()=>{const CT=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;CT[n]=c>>>0}
+ const crc=b=>{let c=0xFFFFFFFF;for(let i=0;i<b.length;i++)c=CT[(c^b[i])&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0};
+ const zip=fs=>{const E=new TextEncoder(),P=[],D=[];let off=0;const u16=(a,v)=>a.push(v&255,(v>>8)&255),u32=(a,v)=>a.push(v&255,(v>>8)&255,(v>>16)&255,(v>>>24)&255);
+  fs.forEach(([n,s])=>{const nb=E.encode(n),db=E.encode(s),c=crc(db),h=[];u32(h,0x04034b50);u16(h,20);u16(h,0x0800);u16(h,0);u16(h,0);u16(h,0x21);u32(h,c);u32(h,db.length);u32(h,db.length);u16(h,nb.length);u16(h,0);
+   const hb=new Uint8Array(h);P.push(hb,nb,db);const d=[];u32(d,0x02014b50);u16(d,20);u16(d,20);u16(d,0x0800);u16(d,0);u16(d,0);u16(d,0x21);u32(d,c);u32(d,db.length);u32(d,db.length);u16(d,nb.length);u16(d,0);u16(d,0);u16(d,0);u16(d,0);u32(d,0);u32(d,off);D.push(new Uint8Array(d),nb);off+=hb.length+nb.length+db.length});
+  const ds=D.reduce((a,b)=>a+b.length,0),e=[];u32(e,0x06054b50);u16(e,0);u16(e,0);u16(e,fs.length);u16(e,fs.length);u32(e,ds);u32(e,off);u16(e,0);return new Blob([...P,...D,new Uint8Array(e)],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"})};
+ const x=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,"");
+ const col=i=>{let s="";i++;while(i){const m=(i-1)%26;s=String.fromCharCode(65+m)+s;i=(i-m-1)/26}return s};
+ /* cell = value | {v, s:"h"|"b"|"a"|"t"|"title"|"bold", d:decimals, f:formula}; rows=[[cell,...],...] */
+ function book(name,rows,widths,rc){rc=String(rc||"#1B7F3B").replace("#","").toUpperCase();const FILL={h:rc,a:"E8F3EC",t:"CDE3D4"},FMT={1:164,2:165,3:166};const X=[[0,0,0,0]],xi={};
+  const sid=(s,d,num)=>{const fill=s==="h"?2:s==="a"?3:s==="t"?4:0,font=s==="h"?1:s==="t"?2:s==="title"?3:s==="bold"?4:0,fmt=num&&d!=null?(d===0?1:FMT[d]||0):0,bd=(s==="h"||s==="a"||s==="t"||s==="b")?1:0,k=[fill,font,fmt,bd].join();if(xi[k]==null){xi[k]=X.length;X.push([fill,font,fmt,bd])}return xi[k]};
+  let sd="";rows.forEach((r,ri)=>{sd+=`<row r="${ri+1}"${(r||[]).some(c=>c&&c.s==="h"&&String(c.v).length>14)?' ht="46" customHeight="1"':""}>`;(r||[]).forEach((c,ci)=>{if(c==null||c==="")return;const o=typeof c==="object"?c:{v:c},ref=col(ci)+(ri+1),num=typeof o.v==="number"&&isFinite(o.v),st=sid(o.s,o.d,num||!!o.f);
+   if(o.f)sd+=`<c r="${ref}" s="${st}"><f>${x(o.f)}</f>${num?`<v>${o.v}</v>`:""}</c>`;else if(num)sd+=`<c r="${ref}" s="${st}"><v>${o.v}</v></c>`;else if(o.v==null||o.v===""){if(o.s)sd+=`<c r="${ref}" s="${st}"/>`}else sd+=`<c r="${ref}" s="${st}" t="inlineStr"><is><t xml:space="preserve">${x(o.v)}</t></is></c>`});sd+="</row>"});
+  const cols=widths&&widths.length?`<cols>${widths.map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join("")}</cols>`:"";
+  const sheet=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetPr><pageSetUpPr fitToPage="1"/></sheetPr>${cols}<sheetData>${sd}</sheetData><pageMargins left="0.4" right="0.4" top="0.5" bottom="0.5" header="0.3" footer="0.3"/><pageSetup orientation="landscape" fitToWidth="1" fitToHeight="0"/></worksheet>`;
+  const fills=`<fills count="5"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill>${["h","a","t"].map(k=>`<fill><patternFill patternType="solid"><fgColor rgb="FF${FILL[k]}"/><bgColor indexed="64"/></patternFill></fill>`).join("")}</fills>`;
+  const fonts=`<fonts count="5"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FF${rc}"/><name val="Calibri"/></font><font><b/><sz val="14"/><color rgb="FF${rc}"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts>`;
+  const styles=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><numFmts count="3"><numFmt numFmtId="164" formatCode="0.0"/><numFmt numFmtId="165" formatCode="0.00"/><numFmt numFmtId="166" formatCode="0.000"/></numFmts>${fonts}${fills}<borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border><border><left style="thin"><color rgb="FFB7D7C1"/></left><right style="thin"><color rgb="FFB7D7C1"/></right><top style="thin"><color rgb="FFB7D7C1"/></top><bottom style="thin"><color rgb="FFB7D7C1"/></bottom><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="${X.length}">${X.map(([fi,fo,nf,bd])=>`<xf numFmtId="${nf}" fontId="${fo}" fillId="${fi}" borderId="${bd}" xfId="0"${fi?' applyFill="1"':""}${fo?' applyFont="1"':""}${nf?' applyNumberFormat="1"':""}${bd?' applyBorder="1"':""}${fi===2?' applyAlignment="1"><alignment wrapText="1" vertical="center"/></xf>':"/>"}`).join("")}</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`;
+  const sn=x(String(name).replace(/[\\\/?*\[\]:]/g," ").slice(0,31)||"Sheet1");
+  return zip([["[Content_Types].xml",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>`],
+   ["_rels/.rels",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`],
+   ["xl/workbook.xml",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="${sn}" sheetId="1" r:id="rId1"/></sheets><calcPr calcId="191029" fullCalcOnLoad="1"/></workbook>`],
+   ["xl/_rels/workbook.xml.rels",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`],
+   ["xl/worksheets/sheet1.xml",sheet],["xl/styles.xml",styles]])}
+ return {book:book,col:col}})();
+function repXlsx(def,D){const cs=def.cols,R=[],a=5,b=4+Math.max(D.rows.length,1);
+ R.push([{v:tx(def.title),s:"title"}],[t("rpPeriod"),{v:D.f===D.to?D.f:D.f+" → "+D.to,s:"bold"}],[]);
+ R.push(cs.map(c=>({v:tx(c.label),s:"h"})));
+ if(!D.rows.length)R.push([{v:t("rpNone"),s:"b"}]);
+ D.rows.forEach((r,i)=>{const s=i%2?"a":"b";R.push(cs.map(c=>{const v=r[c.key];return c.num&&v!==""&&v!=null&&isFinite(+v)?{v:+v,d:c.d||0,s:s}:{v:v==null?"":String(v),s:s}}))});
+ R.push(cs.map((c,i)=>i===0?{v:tx(def.totalLabel||"rpTot"),s:"t"}:c.sum?{v:+fmtN(D.tot[c.key],c.d),d:c.d||0,s:"t",f:`SUM(${XL.col(i)}${a}:${XL.col(i)}${b})`}:{v:"",s:"t"}));
+ const nm=(C.SHORT+" "+tx(def.title)+" "+(D.f===D.to?D.f:D.f+" to "+D.to)).replace(/[\\\/:*?"<>|]/g," ");
+ return {name:nm+".xlsx",blob:XL.book(tx(def.title),R,cs.map(c=>c.num?14:24),C.REPORT_COLOR)}}
+function sendXls(o){const f=typeof File==="function"?new File([o.blob],o.name,{type:o.blob.type}):null;
+ if(f&&navigator.canShare&&navigator.share&&navigator.canShare({files:[f]}))return navigator.share({files:[f],title:o.name}).catch(e=>{if(!e||e.name!=="AbortError")dlXls(o)});return Promise.resolve(dlXls(o))}
+function dlXls(o){const u=URL.createObjectURL(o.blob),a=document.createElement("a");a.href=u;a.download=o.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000)}
+function repScreenHTML(u){
+ if(!repOk(u))return `<div class="box"><p>${esc(t("noAccess"))}</p></div>`;
+ const def=REPORTS.length===1?REPORTS[0]:REPORTS.find(r=>r.id===rp.id);
+ if(!def)return `<div class="box rpList" id="rpList"><h2>📊 ${esc(t("reports"))}</h2><p class="hint">${esc(t("rpPick"))}</p>${REPORTS.map(r=>`<button type="button" class="sec" data-rp="${esc(r.id)}">📊 ${esc(tx(r.title))}</button>`).join("")}</div>`;
+ const D=rpData(def),[f,to]=[D.f,D.to];
+ return `<div class="box noPr" id="rpPick"><div class="rpBar">${[["today","rpToday"],["month","rpMonth"],["pick","rpDates"]].map(([k,l])=>`<button type="button" class="sec${rp.p===k?" on":""}" data-rpp="${k}">${esc(t(l))}</button>`).join("")}</div>
+ ${rp.p==="pick"?`<div class="rpDates"><div><label for="rpF">${esc(t("rpFrom"))}</label><input type="date" id="rpF" value="${esc(f)}"></div><div><label for="rpT">${esc(t("rpTo"))}</label><input type="date" id="rpT" value="${esc(to)}"></div></div><button type="button" id="rpGo">${esc(t("rpShow"))}</button>`:""}</div>
+ <div class="box" id="rpOut">${repTable(def,D)}</div>
+ <div class="rpAct noPr">${canXlsU(u)?`<button type="button" class="rpXls" id="rpXls">${esc(t("rpXls"))}</button>`:""}<button type="button" class="sec" id="rpPrint">${esc(t("rpPrint"))}</button><button type="button" class="sec rpBk" id="rpBack">${esc(t("rpBack"))}</button></div>`}
+function canXlsU(u){return repOk(u)}
+function bindRep(u){const on=(id,fn)=>{const e=$(id);if(e)e.onclick=fn};
+ document.querySelectorAll("[data-rp]").forEach(b=>b.onclick=()=>{rp.id=b.dataset.rp;render()});
+ document.querySelectorAll("[data-rpp]").forEach(b=>b.onclick=()=>{rp.p=b.dataset.rpp;if(rp.p==="pick"&&!rp.from){const r=rpRange();rp.from=r[0];rp.to=r[1]}render()});
+ on("rpGo",()=>{rp.from=$("rpF").value;rp.to=$("rpT").value;render()});
+ const cur=()=>REPORTS.length===1?REPORTS[0]:REPORTS.find(r=>r.id===rp.id);
+ on("rpXls",()=>{const d=cur();if(d)sendXls(repXlsx(d,rpData(d)))});
+ on("rpPrint",()=>window.print());
+ on("rpBack",()=>{if(REPORTS.length>1&&rp.id){rp.id=null}else tab="home";render()})}
+Object.assign(window.TMC,{addReport:addReport,REPORTS:REPORTS,XL:XL,repXlsx:repXlsx,rpData:rpData,sendXls:sendXls,repOk:repOk,rp:()=>rp});
+/* ==================== APP FEATURES START ====================
+   TMC Service: next-service countdown per vehicle.
+   kind "fv" = vehicle + latest meter COPIED from TMC Fuel by the server (read-only here, never sent to Fuel).
+   kind "s"  = service due point set by the technician: {fleet,unit:"km"|"h"|"m",due,at,by}. Newest per fleet wins.
+   kind "x"  = service notes (kept: base tests use #exTxt/#exAdd). */
+Object.assign(T.en,{work:"🔧 Set service",svT:"🔧 Next service",svPick:"Tap a vehicle",svUnit:"Count by",uKm:"km",uH:"hours",uM:"monthly (date)",svDue:"Next service at",svDate:"Next service date",svSave:"💾 Save",svNone:"No vehicles yet. They come from TMC Fuel after Sync.",svNoSet:"Not set",svLeft:"left",svOver:"OVERDUE",svDays:"days",svNow:"Meter now",svFrom:"from Fuel",exT:"📝 Service note",exAdd:"💾 Save note",exNone:"No notes yet.",rpSv:"Service countdown",rpVeh:"Vehicle",rpLeft:"Left",rpDue:"Due at",rpNow:"Now",svBad:"Type a number or pick a date."});
+Object.assign(T.fr,{work:"🔧 Régler entretien",svT:"🔧 Prochain entretien",svPick:"Touchez un véhicule",svUnit:"Compter en",uKm:"km",uH:"heures",uM:"mensuel (date)",svDue:"Prochain entretien à",svDate:"Date du prochain entretien",svSave:"💾 Enregistrer",svNone:"Pas encore de véhicules. Ils viennent de TMC Fuel après Sync.",svNoSet:"Pas réglé",svLeft:"restant",svOver:"EN RETARD",svDays:"jours",svNow:"Compteur",svFrom:"de Fuel",exT:"📝 Note d'entretien",exAdd:"💾 Enregistrer la note",exNone:"Pas encore de notes.",rpSv:"Compte à rebours entretien",rpVeh:"Véhicule",rpLeft:"Restant",rpDue:"Prévu à",rpNow:"Actuel",svBad:"Tapez un nombre ou choisissez une date."});
+Object.assign(T.ar,{work:"🔧 ضبط الصيانة",svT:"🔧 الصيانة القادمة",svPick:"اضغط على مركبة",svUnit:"العد بـ",uKm:"كم",uH:"ساعات",uM:"شهري (تاريخ)",svDue:"الصيانة القادمة عند",svDate:"تاريخ الصيانة القادمة",svSave:"💾 حفظ",svNone:"لا توجد مركبات بعد. تأتي من TMC Fuel بعد المزامنة.",svNoSet:"غير محدد",svLeft:"متبقي",svOver:"متأخر",svDays:"أيام",svNow:"العداد الآن",svFrom:"من Fuel",exT:"📝 ملاحظة صيانة",exAdd:"💾 حفظ الملاحظة",exNone:"لا توجد ملاحظات بعد.",rpSv:"العد التنازلي للصيانة",rpVeh:"المركبة",rpLeft:"المتبقي",rpDue:"موعدها",rpNow:"الآن",svBad:"اكتب رقماً أو اختر تاريخاً."});
+let svSel="";
+const svVeh=()=>all("fv").sort((a,b)=>String(a.fleet).localeCompare(String(b.fleet),undefined,{numeric:true}));
+function svPlan(f){let b=null;all("s").forEach(p=>{if(String(p.fleet)===String(f)&&(!b||String(p.at)>String(b.at)))b=p});return b}
+function svDefUnit(v){return /^h/i.test(String(v&&v.unit||""))?"h":"km"}
+/* left: {txt,over,n}  km/h: due-reading; monthly: days until date */
+function svLeft(v){const p=svPlan(v.fleet);if(!p||p.due===""||p.due==null)return {txt:t("svNoSet"),over:false,n:null,p:p};
+  if(p.unit==="m"){const d=Math.round((new Date(p.due+"T00:00:00")-new Date(ymd(new Date())+"T00:00:00"))/864e5);return {n:d,over:d<0,p:p,txt:d<0?t("svOver")+" "+(-d)+" "+t("svDays"):d+" "+t("svDays")+" "+t("svLeft")}}
+  const r=Number(v.reading),u=p.unit==="h"?t("uH"):t("uKm");if(v.reading===""||v.reading==null||!isFinite(r))return {txt:p.due+" "+u,over:false,n:null,p:p};
+  const n=Math.round((Number(p.due)-r)*10)/10;return {n:n,over:n<0,p:p,txt:n<0?t("svOver")+" "+(-n)+" "+u:n+" "+u+" "+t("svLeft")}}
+function svCard(v){const l=svLeft(v);return `<button type="button" class="sec svV" data-f="${esc(v.fleet)}" style="display:block;width:100%;text-align:start;min-height:72px;margin:8px 0;font-size:20px;${l.over?"background:#dc2626;color:#fff;border-color:#991b1b":""}"><b>${esc(v.fleet)}</b> ${esc(v.name||"")}<br><span style="font-size:22px;font-weight:800">${esc(l.txt)}</span></button>`}
+function svListHTML(){const V=svVeh();return V.length?V.map(svCard).join(""):`<p class="hint">${esc(t("svNone"))}</p>`}
+window.TMC.homeExtra=()=>`<div class="box"><h3>${esc(t("svT"))}</h3>${svListHTML()}</div>`;
+addReport({id:"svc",title:"rpSv",cols:[{key:"veh",label:"rpVeh"},{key:"now",label:"rpNow"},{key:"due",label:"rpDue"},{key:"left",label:"rpLeft"}],
+ rows:()=>svVeh().map(v=>{const l=svLeft(v);return {veh:v.fleet+" "+(v.name||""),now:v.reading==null?"":v.reading,due:l.p?l.p.due:"",left:l.txt,_red:l.over}})});
+function workHTML(u){
+  const V=svVeh(),v=V.find(x=>String(x.fleet)===svSel),ed=canKind("s","add");
+  let top=`<div class="box"><h2>${esc(t("svT"))}</h2><p class="hint">${esc(t("svPick"))}</p>${svListHTML()}</div>`;
+  if(v&&ed){const p=svPlan(v.fleet)||{},un=p.unit||svDefUnit(v);
+    top=`<div class="box" id="svEd"><h2>${esc(v.fleet)} ${esc(v.name||"")}</h2><p style="font-size:20px">${esc(t("svNow"))}: <b>${esc(v.reading==null?"-":v.reading)}</b> <span class="hint">(${esc(t("svFrom"))} ${esc(v.day||"")})</span></p>
+    <h3>${esc(t("svUnit"))}</h3>${[["km","uKm"],["h","uH"],["m","uM"]].map(([k,l])=>`<button type="button" class="${un===k?"":"sec"} svU" data-u="${k}" style="min-height:64px;font-size:20px">${esc(t(l))}</button>`).join("")}
+    <h3>${esc(un==="m"?t("svDate"):t("svDue"))}</h3><input id="svDue" ${un==="m"?'type="date"':'type="text" inputmode="decimal"'} style="font-size:24px;min-height:64px" value="${esc(p.unit===un?(p.due||""):"")}">
+    <p class="err" id="svErr"></p><button type="button" id="svSave" style="min-height:72px;font-size:22px">${esc(t("svSave"))}</button><button type="button" class="sec" id="svBack">${esc(t("back")||"⬅️")}</button></div>`;
+    svSel=String(v.fleet);window.TMC.svUnit=un}
+  const notes=all("x").sort((a,b)=>String(b.at).localeCompare(String(a.at)));
+  const tools=[can("reports")?`<button type="button" class="sec" id="exRep">${esc(t("repT"))}</button>`:"",can("export")?`<button type="button" class="sec" id="exExp">${esc(t("expT"))}</button>`:""].join("");
+  return top+`<div class="box"><h3>${esc(t("exT"))}</h3>
+  ${canKind("x","add")?`<textarea id="exTxt" rows="3" data-draft="exTxt" autocomplete="off" spellcheck="true" autocorrect="on" autocapitalize="sentences"></textarea><p class="hint" id="drNote" style="display:none">${esc(t("draft"))}</p><button type="button" id="exAdd">${esc(t("exAdd"))}</button>`:""}
+  ${canKind("x","view")?(notes.length?notes.map(n=>`<div class="urow" data-id="${esc(n.id)}"><span class="n">${esc(n.text)}</span><span class="hint">${esc(n.by)}</span>${fixBtn("x",n.id,"text")}${fixedNote(n)}</div>`).join(""):`<p class="hint">${esc(t("exNone"))}</p>`):""}</div>
+  ${tools?`<div class="box">${tools}<div class="hint" id="exOut"></div></div>`:""}`;
+}
+function bindSvList(){document.querySelectorAll(".svV").forEach(b=>b.onclick=()=>{svSel=b.dataset.f;tab="work";render()})}
+window.TMC.bindHomeExtra=bindSvList;
+function bindWork(u){
+  const on=(id,f)=>{const e=$(id);if(e)e.onclick=f};bindSvList();
+  document.querySelectorAll(".svU").forEach(b=>b.onclick=()=>{const p=svPlan(svSel)||{};window.TMC.svUnit=b.dataset.u;const tmp=Object.assign({},p,{unit:b.dataset.u,due:p.unit===b.dataset.u?p.due:""});window.TMC.svTmp=tmp;svUnitOverride=b.dataset.u;render()});
+  on("svBack",()=>{svSel="";render()});
+  on("svSave",()=>{const un=window.TMC.svUnit,v=$("svDue").value.trim();
+    if(un==="m"?!/^\d{4}-\d{2}-\d{2}$/.test(v):!isFinite(Number(v))||v===""){const e=$("svErr");e.textContent=t("svBad");e.style.display="block";return}
+    const id="s"+Date.now();if(put("s",id,{id:id,fleet:svSel,unit:un,due:un==="m"?v:Number(v),by:u.name,at:new Date().toISOString()})!==false){svSel="";svUnitOverride="";tab="home";render()}});
+  on("exAdd",()=>{const v=$("exTxt").value.trim();if(!v)return;const id="x"+Date.now();put("x",id,{id:id,text:v,by:u.name,at:new Date().toISOString()});draftClear("exTxt");render()});
+  const srv=a=>{const o=$("exOut");api({action:a,token:sTok()||undefined,code:sCode()||undefined}).then(j=>{if(j.ok&&a==="report")o.innerHTML=reportHTML(t("repT").replace("📊 ",""),Object.entries(j.counts||{}));else o.textContent=j.ok?(j.rows||[]).length+" rows":t("noAccess")}).catch(()=>{o.textContent=t("ncT")})};
+  on("exRep",()=>srv("report"));on("exExp",()=>srv("export"));
+  bindFix();
+}
+let svUnitOverride="";
+const _svPlan=svPlan;svPlan=function(f){const p=_svPlan(f);if(svUnitOverride&&String(f)===svSel)return Object.assign({},p||{},{unit:svUnitOverride,due:p&&p.unit===svUnitOverride?p.due:""});return p};
+/* ==================== APP FEATURES END ==================== */
+function canHTML(u){
+  if(u.admin)return `<div class="box"><h2>✅ ${esc(t("can"))}</h2><p><b>${esc(t("canAll"))}</b></p></div>`;
+  return `<div class="box" id="canBox"><h2>✅ ${esc(t("can"))}</h2><p class="hint">${esc(t("canH"))}</p>${(C.PERMS||[]).map(p=>`<div class="canR ${can(p.id,u)?"yes":"no"}" data-cp="${esc(p.id)}"><span class="ci">${can(p.id,u)?"✅":"⬜"}</span><span>${esc(p.icon)} ${esc(permLab(p))}</span></div>`).join("")}<p class="hint">${esc(t("canAdm"))}</p></div>`;
+}
+function permTicks(u){
+  if(u.admin||u.status!=="active"&&u.status!=="pending")return "";
+  const lk=k=>`<div class="permT lock"><span>${esc(t(k))}<small> · ⭐ ${esc(t("admOnly"))}</small></span><span style="flex:none;font-size:24px">🔒</span></div>`;
+  return `<div class="permBox" data-pu="${esc(u.id)}"><div class="hint">${esc(t("canEd"))} ${esc(u.name)}:</div>${(C.PERMS||[]).map(p=>`<label class="permT${permsOf(u).indexOf(p.id)>=0?" on":""}"><span>${esc(p.icon)} ${esc(permLab(p))}</span><input type="checkbox" data-pu="${esc(u.id)}" data-pp="${esc(p.id)}"${permsOf(u).indexOf(p.id)>=0?" checked":""}></label>`).join("")}${lk("lkFix")}${lk("lkApp")}</div>`;
+}
+let openU=null; // Admin users list: which person is open (list form like Purchases)
+function usersHTML(me_){
+  const U=users(),lab={pending:t("pend"),active:t("act"),rejected:t("rej"),blocked:t("blk")};
+  const sum=u=>u.admin?"⭐ "+t("admin"):((C.PERMS||[]).filter(p=>can(p.id,u)).map(p=>p.icon+" "+permLab(p)).join(" · ")||"—");
+  const ico={pending:"⏳",active:"🟢",rejected:"⛔",blocked:"🚫"};
+  const row=u=>{const o=openU===u.id||u.status==="pending";return `<div class="urow ulr" data-uid="${esc(u.id)}" style="display:block;padding:0;border:0"><button type="button" class="uli" data-open="${esc(u.id)}"><span class="ui">${ico[u.status]||"👤"}</span><span class="ut"><span class="n">${esc(u.name)}</span> <span class="st ${esc(u.status)}">${esc(lab[u.status]||u.status)}</span><small>${esc(sum(u))}</small></span><span class="ch">${o?"⌄":"›"}</span></button>${o?`<div class="uopen"><div class="acts">
+   ${u.status==="pending"?`<button type="button" class="sm" data-ua="approve" data-id="${esc(u.id)}">${esc(t("approve"))}</button><button type="button" class="sm red" data-ua="reject" data-id="${esc(u.id)}">${esc(t("reject"))}</button>`:""}
+   ${u.status==="active"&&u.id!==me_.id?`<button type="button" class="sm red" data-ua="block" data-id="${esc(u.id)}">${esc(t("block"))}</button>`:""}
+   ${(u.status==="blocked"||u.status==="rejected")?`<button type="button" class="sm sec" data-ua="unblock" data-id="${esc(u.id)}">${esc(t("unblock"))}</button>`:""}
+   ${u.status==="active"&&(u.pinH||u.hasPin)&&u.id!==me_.id?`<button type="button" class="sm sec" data-ua="reset" data-id="${esc(u.id)}">${esc(t("resetPin"))}</button>`:""}</div>${permTicks(u)}</div>`:""}</div>`};
+  const pend=U.filter(u=>u.status==="pending"),rest=U.filter(u=>u.status!=="pending").sort((a,b)=>String(a.name).localeCompare(String(b.name)));
+  return `<div class="box"><h3>⏳ ${esc(t("pend"))}</h3>${pend.length?pend.map(row).join(""):`<p class="hint">${esc(t("noPend"))}</p>`}</div><div class="box"><h3>👥 ${esc(t("users"))}</h3>${rest.map(row).join("")}</div>`;
+}
+function bindUsers(){
+  document.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>{openU=openU===b.dataset.open?null:b.dataset.open;render()});
+  document.querySelectorAll("[data-ua]").forEach(b=>b.onclick=()=>{
+    const u=Object.assign({},users().find(x=>x.id===b.dataset.id));if(!u.id)return;const a=b.dataset.ua;
+    if(a==="approve"||a==="unblock")u.status="active";if(a==="reject")u.status="rejected";if(a==="block")u.status="blocked";
+    if(a==="reset"){delete u.pinH;delete u.salt;delete u.hasPin;u.pinReset=Date.now()}
+    if(a==="approve"&&!Array.isArray(u.perms))u.perms=(C.PERM_DEFAULT||[]).slice();
+    put("u",u.id,u);render()});
+  document.querySelectorAll("input[data-pp]").forEach(b=>b.onchange=()=>{
+    const u=Object.assign({},users().find(x=>x.id===b.dataset.pu));if(!u.id||u.admin)return;
+    const s=new Set(permsOf(u));if(b.checked)s.add(b.dataset.pp);else s.delete(b.dataset.pp);
+    u.perms=(C.PERMS||[]).map(p=>p.id).filter(id=>s.has(id));put("u",u.id,u);render()});
+}
+function settingsHTML(u){
+  const lo=+(L.get("lastOk")||0);
+  return `<div class="box"><h3>🌐 ${esc(t("lang"))}</h3>${langBtns()}</div>
+  <div class="box"><h3>🔄 ${esc(t("sync"))}</h3><p class="hint" id="sLine"></p><p class="hint">${esc(t("last"))}: ${lo?esc(new Date(lo).toLocaleString()):"—"}</p><button type="button" id="hSync">${esc(t("syncNow"))}</button>
+  ${u.admin?`<label class="hint">${esc(t("syncUrl"))}</label><div class="pw"><input id="sUrl" class="msk" type="text" autocomplete="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" name="${C.APP_ID}-su" value="${esc(sUrl())}"><button type="button" class="eye" data-eye="sUrl">👁</button></div>
+  <label class="hint">${esc(t("syncCode"))}</label><div class="pw"><input id="sCode" class="msk" type="text" autocomplete="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" name="${C.APP_ID}-sc" value="${esc(sCode())}"><button type="button" class="eye" data-eye="sCode">👁</button></div>
+  <button type="button" class="sec" id="sSave">${esc(t("save"))}</button>`:""}</div>
+  <div class="box"><h3>ℹ️ ${esc(t("ver"))} ${C.VER}</h3><button type="button" class="sec" id="uChk">${esc(t("updChk"))}</button><p class="hint" id="uMsg"></p></div>
+  <div class="box"><button type="button" class="sec" id="hShare">📤 ${esc(t("share"))}</button>${insHTML()}<button type="button" class="red" id="sOut">${esc(t("logout"))}</button><button type="button" class="sec" id="sWipe">${esc(t("wipe"))}</button></div>`;
+}
+function bindMain(u){
+  {const hl=$("hLang");if(hl)hl.onchange=()=>{lang=hl.value;L.set("lang",lang);render()}}
+  bindCommon();
+  document.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>{tab=b.dataset.tab;render()});
+  /* SERVICE HOOK 2/3 (approved): bind Home list */ if(tab==="home"&&window.TMC.bindHomeExtra)window.TMC.bindHomeExtra(u);
+  const on=(id,f)=>{const e=$(id);if(e)e.onclick=f};
+  on("hSync",()=>syncNow());on("hShare",shareModal);
+  on("sSave",()=>{L.set("syurl",$("sUrl").value.trim());L.set("sycode",$("sCode").value.trim());L.del("since");syncNow().then(render)});
+  on("uChk",()=>checkUpdate(true));
+  on("sOut",logout);on("hOut",logout);on("sWipe",wipe);
+  if(tab==="work")bindWork(u);if(tab==="reports")bindRep(u);if(tab==="users")bindUsers();
+  draftBind(u);
+}
+async function logout(){
+  const u=me();if(!u)return;
+  if(pending()&&sUrl()&&navigator.onLine)await syncNow();
+  const n=pending();
+  if(!confirm(n?t("logoutPend").replace("%n",n):t("logoutQ").replace("%n",u.name)))return;
+  signOut();tab="home";render();
+}
+async function wipe(){
+  if(pending()&&sUrl()&&navigator.onLine)await syncNow();
+  const n=pending();if(!confirm(n?t("wipePend").replace("%n",n):t("wipeQ")))return;
+  await wipeThisApp();location.reload();
+}
+// Deletes ONLY this app's keys, caches and service worker. Other TMC apps are untouched.
+async function wipeThisApp(){
+  Object.keys(localStorage).filter(k=>k.indexOf(P)===0).forEach(k=>localStorage.removeItem(k));
+  try{const ks=await caches.keys();await Promise.all(ks.filter(k=>k.indexOf(CACHE_PREFIX)===0).map(k=>caches.delete(k)))}catch(e){}
+  try{const rg=await navigator.serviceWorker.getRegistration("./");if(rg&&new URL(rg.scope).href===new URL("./",location.href).href)await rg.unregister()}catch(e){}
+}
+window.TMC.wipeThisApp=wipeThisApp;
+
+/* ---------------- Drafts ---------------- */
+const dKey=(u,k)=>"draft_"+NK(u.name)+"_"+k;
+function draftBind(u){document.querySelectorAll("[data-draft]").forEach(el=>{const k=dKey(u,el.dataset.draft),v=L.get(k);if(v&&!el.value){el.value=v;const n=$("drNote");if(n)n.style.display="block"}
+  el.addEventListener("input",()=>{if(el.value)L.set(k,el.value);else L.del(k)})})}
+function draftClear(k){const u=me();if(u)L.del(dKey(u,k))}
+window.TMC.draftClear=draftClear;
+
+/* ---------------- Sync status + unsynced warning ---------------- */
+let pendSince=0;
+function paintNc(){const w=$("ncW");if(!w)return;const off=!sUrl(),show=off||netBad;w.style.display=show?"block":"none";if(!show)return;
+  w.innerHTML=`<b>${esc(t("ncT"))}</b><span>${esc(off?t("ncOff"):t("ncH"))}</span>${off?"":`<button type="button" id="ncB">${esc(t("retry"))}</button>`}`;
+  const b=$("ncB");if(b)b.onclick=()=>{if(syncOn())syncNow();else api({action:"status",name:"x"}).catch(()=>{})}}
+function paintSync(){paintNc();
+  const d=$("sDot");if(d)d.className="dot "+(!syncOn()?"":sState==="busy"?"busy":sState==="err"||!navigator.onLine?"err":sState==="ok"?"ok":"");
+  const tm=$("sTime");if(tm){const lo=+(L.get("lastOk")||0),d0=new Date(lo);tm.textContent=lo?(new Date().toDateString()===d0.toDateString()?d0.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}):d0.toLocaleDateString([],{day:"numeric",month:"short"})+" "+d0.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})):"—"}
+  const s=$("sLine");if(s)s.textContent=!syncOn()?t("syncOff"):!navigator.onLine?t("offline"):sState==="err"?t("syncErr"):t("synced");
+  const w=$("pendW");if(!w)return;const n=sUrl()?pending():0;
+  if(!n){pendSince=0;w.style.display="none";return}if(!pendSince)pendSince=Date.now();
+  const show=!navigator.onLine||sState==="err"||Date.now()-pendSince>6000;w.style.display=show?"block":"none";if(!show)return;
+  w.innerHTML=`${esc(t("pwT").replace("%n",n))}${navigator.onLine?"":`<small>${esc(t("pwOff"))}</small>`}<small>${esc(t("pwDel"))}</small><button type="button" id="pwB">${esc(t("syncNow"))}</button>`;
+  $("pwB").onclick=()=>syncNow();
+}
+setInterval(paintSync,2000);addEventListener("online",paintSync);addEventListener("offline",paintSync);
+function onData(){const u=me();if(flow&&flow.s==="wait"&&!u){/* stay */}if(!u&&L.get("uid")){signOut();render();return}
+  const a=document.activeElement;if(u&&!(a&&(a.tagName==="INPUT"||a.tagName==="TEXTAREA")))render()}
+
+/* ---------------- Auto-update (service worker) ---------------- */
+let reg=null,updReady=false;
+function paintUpd(){const w=$("updW");if(!w)return;w.style.display=updReady?"block":"none";if(updReady){w.innerHTML=`${esc(t("updT"))}<button type="button" id="updB">${esc(t("updB"))}</button>`;$("updB").onclick=applyUpdate}}
+function applyUpdate(){if(reg&&reg.waiting)reg.waiting.postMessage("skip");else location.reload()}
+function checkUpdate(manual){if(!reg)return;reg.update().then(()=>{if(manual){const m=$("uMsg");if(m)m.textContent=reg.waiting||reg.installing?t("updT"):t("updNone")}}).catch(()=>{})}
+window.TMC.checkUpdate=checkUpdate;
+if("serviceWorker" in navigator&&location.protocol!=="file:"){
+  let reloading=false;
+  navigator.serviceWorker.addEventListener("controllerchange",()=>{if(reloading)return;reloading=true;location.reload()});
+  navigator.serviceWorker.register("sw.js",{scope:"./"}).then(r=>{reg=r;
+    const watch=w=>{if(!w)return;w.addEventListener("statechange",()=>{if(w.state==="installed"&&navigator.serviceWorker.controller){updReady=true;paintUpd()}})};
+    if(r.waiting&&navigator.serviceWorker.controller){updReady=true;paintUpd()}
+    watch(r.installing);r.addEventListener("updatefound",()=>watch(r.installing));
+    setInterval(()=>checkUpdate(),30*60000);
+  }).catch(e=>console.warn("sw",e));
+}
+
+/* ---------------- Install button + iPhone hint ---------------- */
+let bip=null;
+const typing=()=>{const a=document.activeElement;return !!(a&&(a.tagName==="INPUT"||a.tagName==="TEXTAREA")&&a.value)};
+addEventListener("beforeinstallprompt",e=>{e.preventDefault();bip=e;if(!typing())render()});
+addEventListener("appinstalled",()=>{bip=null;render()});
+const standalone=()=>(window.matchMedia&&matchMedia("(display-mode: standalone)").matches)||navigator.standalone===true;
+const isIos=()=>/iphone|ipad|ipod/i.test(navigator.userAgent);
+function insHTML(){if(standalone())return "";if(bip)return `<button type="button" class="insB">${esc(t("insBtn"))}</button>`;if(isIos())return `<div class="insH">${esc(t("insIos"))}</div>`;return ""}
+function bindIns(){document.querySelectorAll(".insB").forEach(b=>b.onclick=async()=>{if(!bip)return;bip.prompt();try{await bip.userChoice}catch(e){}bip=null;render()})}
+
+/* ---------------- Share app + QR ---------------- */
+function shareModal(){
+  const url=C.SHARE_URL||new URL("./",location.href).href;
+  const m=document.createElement("div");m.className="modal";
+  m.innerHTML=`<div class="card"><h2>📤 ${esc(t("share"))}</h2>${C.SHARE_URL?`<img class="qr" src="icons/qr.png" alt="QR">`:""}<p class="hint">${esc(t("shareH"))}</p><p style="word-break:break-all"><b>${esc(url)}</b></p>
+  ${navigator.share?`<button type="button" id="shS">${esc(t("shareB"))}</button>`:""}<button type="button" class="sec" id="shC">${esc(t("copy"))}</button><button type="button" class="sec" id="shX">${esc(t("close"))}</button></div>`;
+  document.body.appendChild(m);
+  const x=()=>m.remove();$("shX").onclick=x;m.onclick=e=>{if(e.target===m)x()};
+  if($("shS"))$("shS").onclick=()=>navigator.share({title:C.NAME,url:url}).catch(()=>{});
+  $("shC").onclick=()=>{try{navigator.clipboard.writeText(url).then(()=>{$("shC").textContent=t("copied")})}catch(e){}};
+}
+
+render();
+if(syncOn())syncNow();else if(sUrl())api({action:"status",name:"-"}).catch(()=>{});  // probe so "Not connected" shows on a fresh phone too
+})();
+/* SPELLCHECK START — phone spellcheck on every free-text box (names, items, notes).
+   Never on PIN / number / sync / code / masked fields. Covers boxes built later too. */
+(function(){
+  var SKIP=/pin|url|code|sync|pass|qty|price|amount|num|date|email|phone|tel/i;
+  function want(el){
+    if(el.hasAttribute("data-nospell")||el.classList.contains("msk")||el.classList.contains("mk")||el.readOnly||(el.getAttribute("autocapitalize")||"")==="characters")return false;
+    if(el.tagName==="TEXTAREA")return true;
+    var ty=(el.getAttribute("type")||"text").toLowerCase();
+    if(ty!=="text"&&ty!=="search")return false;
+    var im=(el.getAttribute("inputmode")||"").toLowerCase();
+    if(im==="numeric"||im==="decimal"||im==="tel"||im==="email"||im==="url")return false;
+    if(SKIP.test((el.id||"")+" "+(el.name||"")+" "+(el.className||"")))return false;
+    return true;
+  }
+  function fix(el){
+    if(!want(el)){if(el.tagName==="INPUT"||el.tagName==="TEXTAREA"){el.spellcheck=false;el.setAttribute("spellcheck","false")}return}
+    el.spellcheck=true;el.setAttribute("spellcheck","true");el.setAttribute("autocorrect","on");
+    var nm=/name|who/i.test((el.id||"")+" "+(el.name||""))&&el.tagName!=="TEXTAREA";
+    el.setAttribute("autocapitalize",nm?"words":"sentences");
+  }
+  function scan(root){if(!root||!root.querySelectorAll)return;if(root.matches&&root.matches("input,textarea"))fix(root);root.querySelectorAll("input,textarea").forEach(fix)}
+  window.TMC_spell=scan;
+  function go(){scan(document.body);new MutationObserver(function(ms){ms.forEach(function(m){m.addedNodes.forEach(scan)})}).observe(document.body,{childList:true,subtree:true})}
+  if(document.body)go();else document.addEventListener("DOMContentLoaded",go);
+})();
+/* SPELLCHECK END */
+</script>
+</body></html>

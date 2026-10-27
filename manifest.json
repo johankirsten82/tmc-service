@@ -1,0 +1,28 @@
+{
+ "id": "./?tmcapp=tmcservice",
+ "name": "TMC Service",
+ "short_name": "TMC Service",
+ "start_url": "./?tmcapp=tmcservice",
+ "scope": "./",
+ "display": "standalone",
+ "background_color": "#f1f5f9",
+ "theme_color": "#1d4ed8",
+ "icons": [
+  {
+   "src": "icons/icon-192.png?v=5",
+   "sizes": "192x192",
+   "type": "image/png"
+  },
+  {
+   "src": "icons/icon-512.png?v=5",
+   "sizes": "512x512",
+   "type": "image/png"
+  },
+  {
+   "src": "icons/icon-maskable-512.png?v=5",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "maskable"
+  }
+ ]
+}
