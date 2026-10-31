@@ -23,7 +23,7 @@
  "APP_ID": "tmcservice",
  "NAME": "TMC Service",
  "SHORT": "TMC Service",
- "VER": 8,
+ "VER": 9,
  "COLOR": "#1d4ed8",
  "COLOR_DARK": "#1e3a8a",
  "REPORT_COLOR": "#1B7F3B",
@@ -129,8 +129,8 @@
 }/*END*/;</script>
 <title>TMC Service</title>
 <link rel="manifest" href="manifest.json">
-<link rel="icon" href="icons/favicon-32.png?v=8">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=8">
+<link rel="icon" href="icons/favicon-32.png?v=9">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=9">
 <meta name="theme-color" content="#1d4ed8">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <style>
@@ -194,6 +194,7 @@ nav.tabs .tlab{font-size:13px;line-height:1.1;text-align:center;overflow-wrap:an
 .uopen{padding:6px 0 12px;border-bottom:1px solid #e2e8f0}.uopen .acts{display:flex;flex-wrap:wrap;gap:6px}
 .canR{display:flex;align-items:center;gap:12px;min-height:58px;font-size:20px;font-weight:700;border-bottom:1px solid #e2e8f0}.canR.no{color:#94a3b8}.canR .ci{font-size:26px}
 .fixB{width:auto;min-width:120px;min-height:56px;background:#1d4ed8;color:#fff;font-size:18px}.fixN{width:100%}
+.dsc h2{color:#b91c1c}.dsc button{min-height:60px;font-size:20px}
 .modal{position:fixed;inset:0;background:#0008;display:flex;align-items:center;justify-content:center;z-index:20;padding:16px}
 .ncW{background:#fee2e2;border:1px solid #dc2626;color:#7f1d1d}
 .qr{width:240px;height:240px;max-width:80vw;max-height:80vw;background:#fff}
@@ -247,7 +248,7 @@ pwT:"⚠️ %n change(s) not sent to the Sheet yet",pwOff:"No internet — they 
 updT:"🆕 A new version is ready",updB:"⬆️ Update now",updChk:"Check for update",updNone:"You have the latest version.",ver:"Version",
 insBtn:"📲 Install app",insIos:"Tap Share ⬆️ then Add to Home Screen ➕",
 shareH:"Scan this code with the other phone, or send the link.",shareB:"📤 Send link",copy:"📋 Copy link",copied:"Copied",close:"Close",
-pend:"Waiting",act:"Approved",rej:"Rejected",blk:"Blocked",approve:"✅ Approve",reject:"❌ Reject",block:"⛔ Block",unblock:"↩️ Unblock",resetPin:"🔑 Reset PIN",admin:"Admin",noPend:"No one is waiting.",
+pend:"Waiting",act:"Approved",rej:"Rejected",blk:"Blocked",approve:"✅ Approve",reject:"❌ Reject",block:"⛔ Block",unblock:"↩️ Unblock",resetPin:"🔑 Reset PIN",admin:"Admin",noPend:"No one is waiting.",dscBT:"⛔ Block and remove %n?",dscRT:"❌ Reject and remove %n?",dscH:"%n is taken off the list. Their old PIN stops working. They can send a new request later.",dscY:"🗑️ Yes, remove",dscN:"↩️ Back",dscOld:"🗑️ Remove",dscDone:"%n was removed.",dscSelf:"You cannot remove yourself.",dscLast:"You cannot remove the last Admin.",dscMain:"The main Admin cannot be removed or blocked.",dscTok:"Sign in again with your PIN to remove people.",goneT:"Not approved",goneH:"The Admin removed this request. You can send a new one.",again:"📨 Send a new request",
 lang:"Language",sync:"Sync",syncUrl:"Sync link",syncCode:"Sync code",sv:"Saved",logout:"🚪 Log out",logoutQ:"Log out %n?",
 logoutPend:"⚠️ %n change(s) are not sent yet. They stay on this phone and will be sent later. Log out anyway?",
 wipe:"🗑️ Clear this app on this phone",wipeQ:"Delete this app's data on this phone? Other apps are not touched.",wipePend:"⚠️ %n change(s) are NOT sent and will be LOST. Delete anyway?",
@@ -267,7 +268,7 @@ pwT:"⚠️ %n modification(s) pas encore envoyée(s) à la feuille",pwOff:"Pas 
 updT:"🆕 Une nouvelle version est prête",updB:"⬆️ Mettre à jour",updChk:"Chercher une mise à jour",updNone:"Vous avez la dernière version.",ver:"Version",
 insBtn:"📲 Installer l'application",insIos:"Touchez Partager ⬆️ puis Sur l'écran d'accueil ➕",
 shareH:"Scannez ce code avec l'autre téléphone, ou envoyez le lien.",shareB:"📤 Envoyer le lien",copy:"📋 Copier le lien",copied:"Copié",close:"Fermer",
-pend:"En attente",act:"Approuvé",rej:"Refusé",blk:"Bloqué",approve:"✅ Approuver",reject:"❌ Refuser",block:"⛔ Bloquer",unblock:"↩️ Débloquer",resetPin:"🔑 Réinitialiser PIN",admin:"Admin",noPend:"Personne n'attend.",
+pend:"En attente",act:"Approuvé",rej:"Refusé",blk:"Bloqué",approve:"✅ Approuver",reject:"❌ Refuser",block:"⛔ Bloquer",unblock:"↩️ Débloquer",resetPin:"🔑 Réinitialiser PIN",admin:"Admin",noPend:"Personne n'attend.",dscBT:"⛔ Bloquer et retirer %n ?",dscRT:"❌ Refuser et retirer %n ?",dscH:"%n est retiré de la liste. Son ancien PIN ne marche plus. Il peut envoyer une nouvelle demande plus tard.",dscY:"🗑️ Oui, retirer",dscN:"↩️ Retour",dscOld:"🗑️ Retirer",dscDone:"%n a été retiré.",dscSelf:"Vous ne pouvez pas vous retirer vous-même.",dscLast:"Vous ne pouvez pas retirer le dernier Admin.",dscMain:"L'Admin principal ne peut pas être retiré ni bloqué.",dscTok:"Reconnectez-vous avec votre PIN pour retirer quelqu'un.",goneT:"Non approuvé",goneH:"L'Admin a retiré cette demande. Vous pouvez en envoyer une nouvelle.",again:"📨 Nouvelle demande",
 lang:"Langue",sync:"Synchro",syncUrl:"Lien de synchro",syncCode:"Code de synchro",sv:"Enregistré",logout:"🚪 Se déconnecter",logoutQ:"Déconnecter %n ?",
 logoutPend:"⚠️ %n modification(s) pas encore envoyée(s). Elles restent sur ce téléphone et seront envoyées plus tard. Se déconnecter quand même ?",
 wipe:"🗑️ Effacer cette app sur ce téléphone",wipeQ:"Effacer les données de cette app sur ce téléphone ? Les autres apps ne sont pas touchées.",wipePend:"⚠️ %n modification(s) NON envoyée(s) seront PERDUES. Effacer quand même ?",
@@ -287,7 +288,7 @@ pwT:"⚠️ %n تغيير لم يُرسل إلى الجدول بعد",pwOff:"ل�
 updT:"🆕 نسخة جديدة جاهزة",updB:"⬆️ تحديث الآن",updChk:"البحث عن تحديث",updNone:"لديك آخر نسخة.",ver:"النسخة",
 insBtn:"📲 تثبيت التطبيق",insIos:"اضغط مشاركة ⬆️ ثم إضافة إلى الشاشة الرئيسية ➕",
 shareH:"امسح هذا الرمز بالهاتف الآخر، أو أرسل الرابط.",shareB:"📤 إرسال الرابط",copy:"📋 نسخ الرابط",copied:"تم النسخ",close:"إغلاق",
-pend:"بانتظار",act:"موافق عليه",rej:"مرفوض",blk:"محظور",approve:"✅ موافقة",reject:"❌ رفض",block:"⛔ حظر",unblock:"↩️ إلغاء الحظر",resetPin:"🔑 إعادة تعيين الرمز",admin:"مسؤول",noPend:"لا أحد بالانتظار.",
+pend:"بانتظار",act:"موافق عليه",rej:"مرفوض",blk:"محظور",approve:"✅ موافقة",reject:"❌ رفض",block:"⛔ حظر",unblock:"↩️ إلغاء الحظر",resetPin:"🔑 إعادة تعيين الرمز",admin:"مسؤول",noPend:"لا أحد بالانتظار.",dscBT:"⛔ حظر وإزالة %n؟",dscRT:"❌ رفض وإزالة %n؟",dscH:"يُزال %n من القائمة. لن يعمل رمزه القديم بعد الآن. يمكنه إرسال طلب جديد لاحقاً.",dscY:"🗑️ نعم، إزالة",dscN:"↩️ رجوع",dscOld:"🗑️ إزالة",dscDone:"تمت إزالة %n.",dscSelf:"لا يمكنك إزالة نفسك.",dscLast:"لا يمكنك إزالة آخر مسؤول.",dscMain:"لا يمكن إزالة المسؤول الرئيسي أو حظره.",dscTok:"سجّل الدخول مجدداً برمزك لإزالة الأشخاص.",goneT:"غير موافق عليه",goneH:"أزال المسؤول هذا الطلب. يمكنك إرسال طلب جديد.",again:"📨 إرسال طلب جديد",
 lang:"اللغة",sync:"المزامنة",syncUrl:"رابط المزامنة",syncCode:"رمز المزامنة",sv:"تم الحفظ",logout:"🚪 تسجيل الخروج",logoutQ:"تسجيل خروج %n؟",
 logoutPend:"⚠️ %n تغيير لم يُرسل بعد. ستبقى على هذا الهاتف وتُرسل لاحقا. تسجيل الخروج على أي حال؟",
 wipe:"🗑️ مسح هذا التطبيق من هذا الهاتف",wipeQ:"حذف بيانات هذا التطبيق من هذا الهاتف؟ التطبيقات الأخرى لا تتأثر.",wipePend:"⚠️ %n تغيير لم يُرسل وسيضيع. الحذف على أي حال؟",
@@ -359,15 +360,16 @@ function syncNow(){
   sState="busy";paintSync();
   busy=fetch(sUrl(),{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({action:"sync",code:sTok()?undefined:(sCode()||undefined),token:sTok()||undefined,device:dev,since:+(L.get("since")||0),changes:changes})})
   .then(r=>r.json()).then(j=>{
-    if(j&&!j.ok&&(j.error==="bad_token"||j.error==="not_active")){const hadTok=!!sTok();L.del("tok");if(sCode()&&hadTok){relogNo=0;syncSoon(300)}}
+    if(j&&!j.ok&&(j.error==="bad_token"||j.error==="not_active")){const hadTok=!!sTok();L.del("tok");if(sCode()&&hadTok){relogNo=0;syncSoon(300)}else if(tokMode()&&hadTok)syncSoon(300)}  // v9 (base VER 7): re-check now (a removed user is signed out at once)
     if(!j||!j.ok)throw new Error(j&&j.error||"sync");
     Object.keys(sent).forEach(k=>{if(R[k]&&R[k].u===sent[k])delete dirty[k]});
     const F=force;force={};
     (j.records||[]).forEach(s=>{const k=s.kind+":"+s.id,u=+s.u||0,loc=R[k];if(F[k]&&!dirty[k]){delete F[k]}else if(loc&&(loc.u>u||(dirty[k]&&loc.u>=u)))return;
-      let d=s.data;if(typeof d==="string"){try{d=d?JSON.parse(d):null}catch(e){d=null}}if(s.kind==="u"&&(s.del||!d)&&loc&&!loc.del)return;if(s.kind==="u"&&d&&!d.pinH&&d.hasPin&&!d.pinReset&&loc&&loc.data&&loc.data.pinH){d.pinH=loc.data.pinH;d.salt=loc.data.salt}R[k]={kind:s.kind,id:String(s.id),u:u,del:s.del?1:0,data:d}});
+      let d=s.data;if(typeof d==="string"){try{d=d?JSON.parse(d):null}catch(e){d=null}}if(s.kind==="u"&&(s.del||!d)&&loc&&!loc.del&&!(s.del&&d&&d.discarded===1))return;if(s.kind==="u"&&d&&!d.pinH&&d.hasPin&&!d.pinReset&&loc&&loc.data&&loc.data.pinH){d.pinH=loc.data.pinH;d.salt=loc.data.salt}R[k]={kind:s.kind,id:String(s.id),u:u,del:s.del?1:0,data:d}});
     L.set("since",String(j.now||Date.now()));L.set("lastOk",String(Date.now()));saveR();fails=0;sState="ok";netBad=false;
     /* v6: the server refused a fix (admin_only_fix): plain message + take the server copy back */
-    if(j.refused&&j.refusedWhy==="admin_only_fix"){Object.keys(sent).forEach(k=>{if(k.indexOf("u:")!==0&&!dirty[k])force[k]=1});L.set("since","0");toast(t("fixRef"));syncSoon(200)}
+    if(j.refused&&Array.isArray(j.refusedDiscard)&&j.refusedDiscard.length){j.refusedDiscard.forEach(id=>{if(!dirty["u:"+id])force["u:"+id]=1});L.set("since","0");toast(t(j.refusedWhy==="main_admin"?"dscMain":j.refusedWhy==="last_admin"?"dscLast":j.refusedWhy==="self"?"dscSelf":"dscTok"));syncSoon(200)}
+    else if(j.refused&&j.refusedWhy==="admin_only_fix"){Object.keys(sent).forEach(k=>{if(k.indexOf("u:")!==0&&!dirty[k])force[k]=1});L.set("since","0");toast(t("fixRef"));syncSoon(200)}
     /* v7: the server refused a job card (stock would go below zero, no Admin override): drop it here too */
     if(Array.isArray(j.refusedStock)&&j.refusedStock.length){j.refusedStock.forEach(k=>{if(!dirty[k]&&R[k])delete R[k]});saveR();toast(t("jcNegRef"))}
     return true})
@@ -401,7 +403,7 @@ function clearFail(k){const F=L.j("pinFail",{});delete F[k];L.sj("pinFail",F)}
 
 /* ---------------- Screens ---------------- */
 let tab="home",flow=null; // flow = sign-in sub-screen
-function card(inner){return `<div class="full"><div class="signin"><div class="card"><img class="logo" src="icons/icon-192.png?v=8" alt="">${inner}${insHTML()}</div><div id="ncW" class="bar ncW ncBox"></div></div></div>`}
+function card(inner){return `<div class="full"><div class="signin"><div class="card"><img class="logo" src="icons/icon-192.png?v=9" alt="">${inner}${insHTML()}</div><div id="ncW" class="bar ncW ncBox"></div></div></div>`}
 function langBtns(){return `<div class="langs"><select id="langSel" aria-label="Language">${["en","fr","ar"].map(l=>`<option value="${l}"${l===lang?" selected":""}>🌐 ${l==="en"?"English":l==="fr"?"Français":"العربية"}</option>`).join("")}</select></div>`}
 function pinInput(id,ph){return `<div class="pw"><input id="${id}" name="${C.APP_ID}-${id}-${Math.random().toString(36).slice(2,7)}" class="msk" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-form-type="other" placeholder="${esc(ph)}"><button type="button" class="eye" data-eye="${id}">👁</button></div>`}
 function render(){
@@ -410,7 +412,7 @@ function render(){
   if(!u){A.innerHTML=signinHTML();bindSignin();return}
   flow=null;
   if(tab==="users"&&!u.admin)tab="home";if(tab==="work"&&!workOk(u))tab="home";if(tab==="reports"&&!(repOk(u)&&REPORTS.length))tab="home";if(window.TMC.appViews&&window.TMC.appViews[tab]&&!tabsOf(u).some(x=>x[0]===tab))tab="home";
-  A.innerHTML=`<header id="hBand"><img src="icons/icon-192.png?v=8" alt=""><div class="t">${esc(C.SHORT)}</div><span class="hS" id="hS"><span id="sDot" class="dot"></span><span id="sTime" class="sTime"></span></span><select id="hLang" class="hLang" aria-label="Language">${["en","fr","ar"].map(l=>`<option value="${l}"${l===lang?" selected":""}>${l.toUpperCase()}</option>`).join("")}</select></header>
+  A.innerHTML=`<header id="hBand"><img src="icons/icon-192.png?v=9" alt=""><div class="t">${esc(C.SHORT)}</div><span class="hS" id="hS"><span id="sDot" class="dot"></span><span id="sTime" class="sTime"></span></span><select id="hLang" class="hLang" aria-label="Language">${["en","fr","ar"].map(l=>`<option value="${l}"${l===lang?" selected":""}>${l.toUpperCase()}</option>`).join("")}</select></header>
   <main><div id="ncW" class="bar ncW"></div><div id="updW" class="bar updW"></div><div id="pendW" class="bar pendW"></div><div id="view">${viewHTML(u)}</div></main>
   <nav class="tabs">${tabsOf(u).map(x=>navBtn(...x)).join("")}</nav>`;
   bindMain(u);paintSync();paintUpd();
@@ -430,9 +432,10 @@ function signinHTML(){
   if(f.s==="set")return card(`<h2>${esc(f.setup?t("setupT"):t("setT"))}</h2><p><b>${esc(f.u.name)}</b></p><p class="hint">${esc(f.setup?t("setupH"):t("setH"))}</p>${pinInput("fPin",t("pin"))}${pinInput("fPin2",t("pin2"))}<p class="err" id="fErr"></p><button type="button" id="fSet">${esc(t("save"))}</button><button type="button" class="sec" id="fOther">${esc(t("other"))}</button>`);
   if(f.s==="wait")return card(`<h2>⏳ ${esc(t("waitT"))}</h2><p class="hint">${esc(t("waitH").replace("%n",f.name))}</p><button type="button" id="fCheck">${esc(t("check"))}</button><button type="button" class="sec" id="fOther">${esc(t("other"))}</button>`);
   if(f.s==="dup")return card(`<h2 id="dupT">✋ ${esc(t("dupT"))}</h2><p class="hint" style="font-size:18px">${esc(t("dupH"))}</p><button type="button" id="fCheck" style="min-height:60px">${esc(t("check"))}</button><button type="button" class="sec" id="fOther" style="min-height:60px">${esc(t("other"))}</button>`);
+  if(f.s==="gone")return card(`<h2 id="goneT">❌ ${esc(t("goneT"))}</h2><p class="hint" style="font-size:18px">${esc(t("goneH"))}</p><button type="button" id="fAgain" style="min-height:60px">${esc(t("again"))}</button><button type="button" class="sec" id="fOther" style="min-height:60px">${esc(t("other"))}</button>`);
   if(f.s==="rej")return card(`<h2>❌ ${esc(t("rejT"))}</h2><p class="hint">${esc(t("rejH"))}</p><button type="button" class="sec" id="fOther">${esc(t("other"))}</button>`);
   if(f.s==="blk")return card(`<h2>⛔ ${esc(t("blkT"))}</h2><p class="hint">${esc(t("blkH"))}</p><button type="button" class="sec" id="fOther">${esc(t("other"))}</button>`);
-  return `<div class="full tmcS" style="--tmcS-c:${esc(C.COLOR)};--tmcS-cd:${esc(C.COLOR_DARK)}"><div class="signin"><div class="card"><img class="tmcS-logo logo" src="icons/icon-192.png?v=8" width="84" height="84" alt=""><h2 class="tmcS-t">${esc(C.NAME)}</h2><select id="langSel" class="tmcS-lang" aria-label="Language">${["en","fr","ar"].map(l=>`<option value="${l}"${l===lang?" selected":""}>🌐 ${l==="en"?"English":l==="fr"?"Français":"العربية"}</option>`).join("")}</select><input id="fName" class="tmcS-name" name="${C.APP_ID}-who" type="text" autocomplete="off" autocapitalize="words" spellcheck="true" autocorrect="on" data-lpignore="true" data-1p-ignore="true" placeholder="${esc(t("nameH"))}" value="${esc(L.get("lastName")||"")}"><p class="err tmcS-err" id="fErr"></p><button type="button" id="fName2" class="tmcS-go">${esc(t("go"))}</button>${insHTML()}</div><div id="ncW" class="bar ncW ncBox" role="alert"></div></div></div>`;
+  return `<div class="full tmcS" style="--tmcS-c:${esc(C.COLOR)};--tmcS-cd:${esc(C.COLOR_DARK)}"><div class="signin"><div class="card"><img class="tmcS-logo logo" src="icons/icon-192.png?v=9" width="84" height="84" alt=""><h2 class="tmcS-t">${esc(C.NAME)}</h2><select id="langSel" class="tmcS-lang" aria-label="Language">${["en","fr","ar"].map(l=>`<option value="${l}"${l===lang?" selected":""}>🌐 ${l==="en"?"English":l==="fr"?"Français":"العربية"}</option>`).join("")}</select><input id="fName" class="tmcS-name" name="${C.APP_ID}-who" type="text" autocomplete="off" autocapitalize="words" spellcheck="true" autocorrect="on" data-lpignore="true" data-1p-ignore="true" placeholder="${esc(t("nameH"))}" value="${esc(L.get("lastName")||"")}"><p class="err tmcS-err" id="fErr"></p><button type="button" id="fName2" class="tmcS-go">${esc(t("go"))}</button>${insHTML()}</div><div id="ncW" class="bar ncW ncBox" role="alert"></div></div></div>`;
 }
 function err(m){const e=$("fErr");if(e){e.textContent=m;e.style.display="block"}}
 function bindCommon(){
@@ -447,7 +450,8 @@ function bindSignin(){
   on("fName2",()=>startName($("fName").value));
   const n=$("fName");if(n)n.onkeydown=e=>{if(e.key==="Enter")startName(n.value)};
   on("fRetry",()=>startName(flow.name));
-  on("fCheck",()=>{if(tokMode())return srvLookup(flow.name,false);syncNow().then(()=>lookup(flow.name))});
+  on("fCheck",()=>{if(tokMode())return srvLookup(flow.name,false);const nm=flow.name;syncNow().then(()=>{const K=NK(nm);if(!users().some(u=>NK(u.name)===K)){flow={s:"gone",name:nm};return render()}lookup(nm)})});  // v9: request removed → offer a fresh one
+  on("fAgain",()=>startName(flow.name));
   on("fGo",checkPin);on("fSet",setPin);
   const p=$("fPin");if(p){p.focus();p.onkeydown=e=>{if(e.key==="Enter")(flow.s==="pin"?checkPin:setPin)()}}
 }
@@ -471,6 +475,7 @@ async function srvLookup(name,reg){
   if(st==="blocked"){flow={s:"blk",name:name};return render()}
   if(st==="rejected"){flow={s:"rej",name:name};return render()}
   if(st==="dup"||(st==="pending"&&j.other)){flow={s:"dup",name:name,srv:1};return render()}  // ONE request per name per app
+  if(st==="none"&&!reg){flow={s:"gone",name:name};return render()}  // v9: the Admin removed this request
   flow={s:"wait",name:name,srv:1};render();
 }
 async function gotToken(j,u){
@@ -526,7 +531,7 @@ function viewHTML(u){
   if(tab==="reports")return repScreenHTML(u);
   /* SERVICE HOOK 4 (v7): app screens (Parts store) */if(window.TMC.appViews&&window.TMC.appViews[tab])return window.TMC.appViews[tab].html(u);
   const np=users().filter(x=>x.status==="pending").length;
-  return `<div class="box hhero" id="hHero"><img src="icons/icon-192.png?v=8" alt="" width="64" height="64"><div><h2>${esc(C.NAME)}</h2><div id="hDate">${esc(new Date().toLocaleDateString(lang==="ar"?"ar-TD":lang==="fr"?"fr-FR":"en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric"}))}</div><div class="hhi" id="hHello">👋 ${esc(t("hello"))}, ${esc(u.name)}</div></div></div><button type="button" class="sec loBand" id="hOut">${esc(t("logout"))}</button>
+  return `<div class="box hhero" id="hHero"><img src="icons/icon-192.png?v=9" alt="" width="64" height="64"><div><h2>${esc(C.NAME)}</h2><div id="hDate">${esc(new Date().toLocaleDateString(lang==="ar"?"ar-TD":lang==="fr"?"fr-FR":"en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric"}))}</div><div class="hhi" id="hHello">👋 ${esc(t("hello"))}, ${esc(u.name)}</div></div></div><button type="button" class="sec loBand" id="hOut">${esc(t("logout"))}</button>
   <div class="tiles">${tabsOf(u).filter(x=>x[0]!=="home").map(([k,ic,n])=>`<button type="button" class="tile" data-tab="${k}"${k==="can"?' id="hCan"':""}><b>${ic}</b>${esc(t(k))}${n?` (${n})`:""}</button>`).join("")}</div>${/* SERVICE HOOK 1/3 (approved): app list on Home */""}${window.TMC.homeExtra?window.TMC.homeExtra(u):""}`;
 }
 /* ---- PHOTO: every photo field = 2 big buttons (camera OR phone gallery), same handler ----
@@ -723,7 +728,7 @@ const svLastC=s=>!s.p?(s.v.reading==null||s.v.reading===""?"—":svNum(s.v.readi
 const svDueC=s=>!s.p?"—":s.p.unit==="m"?svDt(s.p.due):svNum(s.p.due)+" "+svU(s.p.unit);
 const svRemC=s=>{if(s.g===3)return s.l.txt;const n=s.l.n,u=s.p.unit==="m"?" "+t("rsDays"):" "+svU(s.p.unit);return (n<0?"−":"")+svNum(Math.abs(n))+u};
 function svPrintHTML(u){const S=svStats(),cnt=[0,0,0,0];S.forEach(s=>cnt[s.g]++);const [f,to]=svRange(),D=svDone(f,to),site=svSite();
- return `<div id="svPrint" class="svA4"><div class="hd"><div class="l"><img src="icons/icon-192.png?v=8" alt=""><div><div class="co">${esc(C.NAME)}</div><div class="co2">${esc(t("rsTitle"))}</div></div></div>
+ return `<div id="svPrint" class="svA4"><div class="hd"><div class="l"><img src="icons/icon-192.png?v=9" alt=""><div><div class="co">${esc(C.NAME)}</div><div class="co2">${esc(t("rsTitle"))}</div></div></div>
  <div class="r"><div class="title">${esc(t("rsA4T"))}</div><table class="meta"><tr><td class="k">${esc(t("rsPer"))}</td><td>${esc(svDt(f))} – ${esc(svDt(to))}</td></tr><tr><td class="k">${esc(t("rsRDate"))}</td><td>${esc(svDt(svToday()))}</td></tr><tr><td class="k">${esc(t("rsSite"))}</td><td id="svA4Site">${esc(site||"—")}</td></tr></table></div></div>
  <h2>${esc(t("rsSum"))}</h2><div class="sum"><div><span class="mk m-r"></span>${esc(t("rsOver"))}&nbsp;<b>${cnt[0]}</b></div><div><span class="mk m-a"></span>${esc(t("rsSoon"))}&nbsp;<b>${cnt[1]}</b></div><div><span class="mk m-g"></span>${esc(t("rsOk"))}&nbsp;<b>${cnt[2]}</b></div><div>${esc(t("rsTotU"))}&nbsp;<b>${S.length}</b></div></div>
  <h2>${esc(t("rsSec2"))}</h2><table class="t" id="svA4St"><thead><tr><th>${esc(t("rsUnit"))}</th><th>${esc(t("rsDesc"))}</th><th>${esc(t("rsBasis"))}</th><th class="n">${esc(t("rsLastM"))}</th><th class="n">${esc(t("rsDueAtC"))}</th><th class="n">${esc(t("rsRem"))}</th><th>${esc(t("rsStat"))}</th></tr></thead><tbody>
@@ -950,7 +955,7 @@ function jcSaveFn(u){jcGrab();const D=jcD,v=jcVehNow();if(!D||!v)return;
  jcD=null;jcMode="list";toast(t("jcOk"));render()}
 /* A4 job card: same layout + company green as the approved a4-green Service report (.svA4 classes) */
 function jcPrintHTML(j,u){const site=svSite(),P=j.parts||[],tot=stR(P.reduce((a,l)=>a+(+l.qty||0),0)),veh=svVeh().find(x=>String(x.fleet)===String(j.fleet))||{};
- return `<div id="jcPrint" class="svA4"><div class="hd"><div class="l"><img src="icons/icon-192.png?v=8" alt=""><div><div class="co">${esc(C.NAME)}</div><div class="co2">${esc(t("jcT").replace("📋 ",""))}</div></div></div>
+ return `<div id="jcPrint" class="svA4"><div class="hd"><div class="l"><img src="icons/icon-192.png?v=9" alt=""><div><div class="co">${esc(C.NAME)}</div><div class="co2">${esc(t("jcT").replace("📋 ",""))}</div></div></div>
  <div class="r"><div class="title">${esc(t("jcA4T"))}</div><table class="meta"><tr><td class="k">${esc(t("jcNo"))}</td><td id="jcA4No">${esc(j.no||j.id)}</td></tr><tr><td class="k">${esc(t("rsDate"))}</td><td>${esc(svDt(j.date))}</td></tr><tr><td class="k">${esc(t("rsSite"))}</td><td>${esc(site||"—")}</td></tr></table></div></div>
  <h2>${esc(t("jcSec1"))}</h2><table class="t" id="jcA4V"><thead><tr><th>${esc(t("rsUnit"))}</th><th>${esc(t("rsDesc"))}</th><th class="n">${esc(t("rsMeterAt"))}</th><th>${esc(t("rsBasis"))}</th><th class="n">${esc(t("jcNextAt"))}</th></tr></thead><tbody><tr><td class="id">${esc(j.fleet)}</td><td>${esc(j.name||veh.name||"")}</td><td class="n">${esc(j.meter===""||j.meter==null?"—":svNum(j.meter)+" "+svU(j.mu))}</td><td>${esc((j.unit==="m"?t("rsMon"):j.unit==="h"?t("rsHrs"):"km")+(j.every?" / "+svNum(j.every):""))}</td><td class="n">${esc(jcDueTxt(j.unit,j.due))}</td></tr></tbody></table>
  <h2>${esc(t("jcSec2"))}</h2><div class="notes" id="jcA4W">${esc(j.work)}</div><div class="note">${esc(t("rsDoneBy"))}: <b>${esc(j.by)}</b></div>
@@ -998,17 +1003,35 @@ function usersHTML(me_){
   const sum=u=>u.admin?"⭐ "+t("admin"):((C.PERMS||[]).filter(p=>can(p.id,u)).map(p=>p.icon+" "+permLab(p)).join(" · ")||"—");
   const ico={pending:"⏳",active:"🟢",rejected:"⛔",blocked:"🚫"};
   const row=u=>{const o=openU===u.id||u.status==="pending";return `<div class="urow ulr" data-uid="${esc(u.id)}" style="display:block;padding:0;border:0"><button type="button" class="uli" data-open="${esc(u.id)}"><span class="ui">${ico[u.status]||"👤"}</span><span class="ut"><span class="n">${esc(u.name)}</span> <span class="st ${esc(u.status)}">${esc(lab[u.status]||u.status)}</span><small>${esc(sum(u))}</small></span><span class="ch">${o?"⌄":"›"}</span></button>${o?`<div class="uopen"><div class="acts">
-   ${u.status==="pending"?`<button type="button" class="sm" data-ua="approve" data-id="${esc(u.id)}">${esc(t("approve"))}</button><button type="button" class="sm red" data-ua="reject" data-id="${esc(u.id)}">${esc(t("reject"))}</button>`:""}
-   ${u.status==="active"&&u.id!==me_.id?`<button type="button" class="sm red" data-ua="block" data-id="${esc(u.id)}">${esc(t("block"))}</button>`:""}
-   ${(u.status==="blocked"||u.status==="rejected")?`<button type="button" class="sm sec" data-ua="unblock" data-id="${esc(u.id)}">${esc(t("unblock"))}</button>`:""}
+   ${u.status==="pending"&&!isMainU(u)?`<button type="button" class="sm" data-ua="approve" data-id="${esc(u.id)}">${esc(t("approve"))}</button><button type="button" class="sm red" data-ud="reject" data-id="${esc(u.id)}">${esc(t("reject"))}</button>`:""}
+   ${u.status==="active"&&u.id!==me_.id&&!isMainU(u)?`<button type="button" class="sm red" data-ud="block" data-id="${esc(u.id)}">${esc(t("block"))}</button>`:""}
+   ${(u.status==="blocked"||u.status==="rejected")&&!isMainU(u)?`<button type="button" class="sm red" data-ud="${u.status==="blocked"?"block":"reject"}" data-id="${esc(u.id)}">${esc(t("dscOld"))}</button>`:""}
    ${u.status==="active"&&(u.pinH||u.hasPin)&&u.id!==me_.id?`<button type="button" class="sm sec" data-ua="reset" data-id="${esc(u.id)}">${esc(t("resetPin"))}</button>`:""}</div>${permTicks(u)}</div>`:""}</div>`};
   const pend=U.filter(u=>u.status==="pending"),rest=U.filter(u=>u.status!=="pending").sort((a,b)=>String(a.name).localeCompare(String(b.name)));
   return `<div class="box"><h3>⏳ ${esc(t("pend"))}</h3>${pend.length?pend.map(row).join(""):`<p class="hint">${esc(t("noPend"))}</p>`}</div><div class="box"><h3>👥 ${esc(t("users"))}</h3>${rest.map(row).join("")}</div>`;
 }
+/* v9 (base VER 7, Johan 31 Oct 2026): Block / Reject = REMOVE. The user record is taken off the phone and the Sheet (server checks Admin token,
+   never the signed-in Admin, never the last Admin) and its old PIN/token stop working. The person may send a fresh request later (→ Pending). No Unblock. */
+/* v9: the MAIN Admin (name key jakirsten = CONFIG.ADMIN_ALIASES, with the admin flag) can never be removed or blocked by anyone */
+const isMainU=u=>!!(u&&u.admin&&NK(u.name)===ADMIN_KEY);window.TMC.isMainU=isMainU;
+function discardWhy(u){const m=me();if(!m||!m.admin)return "dscTok";if(u.id===m.id)return "dscSelf";if(isMainU(u))return "dscMain";
+  if(u.admin&&!users().some(x=>x.id!==u.id&&x.admin&&x.status==="active"))return "dscLast";if(!canFix())return "dscTok";return ""}
+function discardUser(id){const u=users().find(x=>x.id===id);if(!u)return false;const w=discardWhy(u);if(w){toast(t(w));return false}
+  const k="u:"+id;R[k]={kind:"u",id:String(id),u:Math.max(Date.now(),R[k]?R[k].u+1:0),del:1,data:{discarded:1,at:new Date().toISOString()}};dirty[k]=1;saveR();syncSoon();
+  if(openU===id)openU=null;toast(t("dscDone").replace("%n",u.name));render();return true}
+window.TMC.discardUser=discardUser;
+function discardModal(id,why,again){const u=users().find(x=>x.id===id);if(!u)return;const w=discardWhy(u);
+  if(w==="dscTok"&&!again&&me()&&me().admin&&!sTok()){relogNo=0;return Promise.resolve(syncNow()).then(()=>discardModal(id,why,1),()=>discardModal(id,why,1))}  // Admin token missing (team code): fetch one first
+  if(w)return toast(t(w));
+  const m=document.createElement("div");m.className="modal";m.id="dscM";
+  m.innerHTML=`<div class="card dsc"><h2>${esc(t(why==="reject"?"dscRT":"dscBT").replace("%n",u.name))}</h2><p class="hint" style="font-size:18px">${esc(t("dscH").replace("%n",u.name))}</p><button type="button" class="red" id="dscY">${esc(t("dscY"))}</button><button type="button" class="sec" id="dscN">${esc(t("dscN"))}</button></div>`;
+  document.body.appendChild(m);const x=()=>m.remove();$("dscN").onclick=x;m.onclick=e=>{if(e.target===m)x()};$("dscY").onclick=()=>{x();discardUser(id)}}
 function bindUsers(){
+  document.querySelectorAll("[data-ud]").forEach(b=>b.onclick=()=>discardModal(b.dataset.id,b.dataset.ud));
   document.querySelectorAll("[data-open]").forEach(b=>b.onclick=()=>{openU=openU===b.dataset.open?null:b.dataset.open;render()});
   document.querySelectorAll("[data-ua]").forEach(b=>b.onclick=()=>{
     const u=Object.assign({},users().find(x=>x.id===b.dataset.id));if(!u.id)return;const a=b.dataset.ua;
+    if(isMainU(u)&&a!=="reset"&&a!=="approve")return toast(t("dscMain"));  // v9: main Admin is protected
     if(a==="approve"||a==="unblock")u.status="active";if(a==="reject")u.status="rejected";if(a==="block")u.status="blocked";
     if(a==="reset"){delete u.pinH;delete u.salt;delete u.hasPin;u.pinReset=Date.now()}
     if(a==="approve"&&!Array.isArray(u.perms))u.perms=(C.PERM_DEFAULT||[]).slice();
