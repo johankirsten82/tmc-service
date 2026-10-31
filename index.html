@@ -23,7 +23,7 @@
  "APP_ID": "tmcservice",
  "NAME": "TMC Service",
  "SHORT": "TMC Service",
- "VER": 6,
+ "VER": 7,
  "COLOR": "#1d4ed8",
  "COLOR_DARK": "#1e3a8a",
  "REPORT_COLOR": "#1B7F3B",
@@ -66,6 +66,20 @@
    "en": "Export",
    "fr": "Exporter",
    "ar": "تصدير"
+  },
+  {
+   "id": "store",
+   "icon": "📦",
+   "en": "View parts store",
+   "fr": "Voir le magasin de pièces",
+   "ar": "عرض مخزن القطع"
+  },
+  {
+   "id": "storeEd",
+   "icon": "➕",
+   "en": "Add parts to store",
+   "fr": "Ajouter des pièces au magasin",
+   "ar": "إضافة قطع إلى المخزن"
   }
  ],
  "PERM_DEFAULT": [
@@ -84,14 +98,39 @@
   "fv": {
    "view": "view",
    "add": "admin"
+  },
+  "pt": {
+   "view": [
+    "store",
+    "storeEd",
+    "add"
+   ],
+   "add": "storeEd"
+  },
+  "sc": {
+   "view": [
+    "store",
+    "storeEd",
+    "add"
+   ],
+   "add": "admin"
+  },
+  "jc": {
+   "view": [
+    "view",
+    "store",
+    "storeEd",
+    "add"
+   ],
+   "add": "add"
   }
  },
  "CACHE_PREFIX": "tmc-service"
 }/*END*/;</script>
 <title>TMC Service</title>
 <link rel="manifest" href="manifest.json">
-<link rel="icon" href="icons/favicon-32.png?v=6">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=6">
+<link rel="icon" href="icons/favicon-32.png?v=7">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=7">
 <meta name="theme-color" content="#1d4ed8">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <style>
@@ -276,7 +315,7 @@ const all=kind=>Object.keys(R).map(k=>R[k]).filter(r=>r.kind===kind&&!r.del).map
 /* PERMISSIONS: the Admin ticks what each person may do (CONFIG.PERMS). Admin = everything. The server checks too. */
 function permsOf(u){return u&&Array.isArray(u.perms)?u.perms:(C.PERM_DEFAULT||[])}
 function can(p,u){u=u||me();return !!u&&(!!u.admin||permsOf(u).indexOf(p)>=0)}
-function canKind(kind,what,u){const k=(C.PERM_KINDS||{})[kind];return !k||!k[what]||can(k[what],u)}
+function canKind(kind,what,u){const k=(C.PERM_KINDS||{})[kind];if(!k||!k[what])return true;const n=k[what];return Array.isArray(n)?n.some(p=>can(p,u)):can(n,u)}  /* v7: a list = any one of these ticks */
 function permLab(p){return p[lang]||p.en}
 /* v6 ADMIN FIX RULE (phone): role + token decide, never the team code alone (tests/admin_fix_test_spec.md). */
 function canFix(){const m=me();if(!(m&&m.admin))return false;return !!(sTok()||!sCode())}
@@ -329,6 +368,8 @@ function syncNow(){
     L.set("since",String(j.now||Date.now()));L.set("lastOk",String(Date.now()));saveR();fails=0;sState="ok";netBad=false;
     /* v6: the server refused a fix (admin_only_fix): plain message + take the server copy back */
     if(j.refused&&j.refusedWhy==="admin_only_fix"){Object.keys(sent).forEach(k=>{if(k.indexOf("u:")!==0&&!dirty[k])force[k]=1});L.set("since","0");toast(t("fixRef"));syncSoon(200)}
+    /* v7: the server refused a job card (stock would go below zero, no Admin override): drop it here too */
+    if(Array.isArray(j.refusedStock)&&j.refusedStock.length){j.refusedStock.forEach(k=>{if(!dirty[k]&&R[k])delete R[k]});saveR();toast(t("jcNegRef"))}
     return true})
   .catch(e=>{fails++;sState="err";netBad=true;syncSoon(navigator.onLine?Math.min(120000,5000*Math.pow(2,fails-1)):60000);return false})
   .then(ok=>{busy=null;paintSync();try{onData()}catch(e){console.warn(e)}if(ok&&pending())syncSoon(300);return ok});
@@ -360,7 +401,7 @@ function clearFail(k){const F=L.j("pinFail",{});delete F[k];L.sj("pinFail",F)}
 
 /* ---------------- Screens ---------------- */
 let tab="home",flow=null; // flow = sign-in sub-screen
-function card(inner){return `<div class="full"><div class="signin"><div class="card"><img class="logo" src="icons/icon-192.png?v=6" alt="">${inner}${insHTML()}</div><div id="ncW" class="bar ncW ncBox"></div></div></div>`}
+function card(inner){return `<div class="full"><div class="signin"><div class="card"><img class="logo" src="icons/icon-192.png?v=7" alt="">${inner}${insHTML()}</div><div id="ncW" class="bar ncW ncBox"></div></div></div>`}
 function langBtns(){return `<div class="langs"><select id="langSel" aria-label="Language">${["en","fr","ar"].map(l=>`<option value="${l}"${l===lang?" selected":""}>🌐 ${l==="en"?"English":l==="fr"?"Français":"العربية"}</option>`).join("")}</select></div>`}
 function pinInput(id,ph){return `<div class="pw"><input id="${id}" name="${C.APP_ID}-${id}-${Math.random().toString(36).slice(2,7)}" class="msk" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-form-type="other" placeholder="${esc(ph)}"><button type="button" class="eye" data-eye="${id}">👁</button></div>`}
 function render(){
@@ -368,14 +409,14 @@ function render(){
   const u=me();
   if(!u){A.innerHTML=signinHTML();bindSignin();return}
   flow=null;
-  if(tab==="users"&&!u.admin)tab="home";if(tab==="work"&&!workOk(u))tab="home";if(tab==="reports"&&!(repOk(u)&&REPORTS.length))tab="home";
-  A.innerHTML=`<header id="hBand"><img src="icons/icon-192.png?v=6" alt=""><div class="t">${esc(C.SHORT)}</div><span class="hS" id="hS"><span id="sDot" class="dot"></span><span id="sTime" class="sTime"></span></span><select id="hLang" class="hLang" aria-label="Language">${["en","fr","ar"].map(l=>`<option value="${l}"${l===lang?" selected":""}>${l.toUpperCase()}</option>`).join("")}</select></header>
+  if(tab==="users"&&!u.admin)tab="home";if(tab==="work"&&!workOk(u))tab="home";if(tab==="reports"&&!(repOk(u)&&REPORTS.length))tab="home";if(window.TMC.appViews&&window.TMC.appViews[tab]&&!tabsOf(u).some(x=>x[0]===tab))tab="home";
+  A.innerHTML=`<header id="hBand"><img src="icons/icon-192.png?v=7" alt=""><div class="t">${esc(C.SHORT)}</div><span class="hS" id="hS"><span id="sDot" class="dot"></span><span id="sTime" class="sTime"></span></span><select id="hLang" class="hLang" aria-label="Language">${["en","fr","ar"].map(l=>`<option value="${l}"${l===lang?" selected":""}>${l.toUpperCase()}</option>`).join("")}</select></header>
   <main><div id="ncW" class="bar ncW"></div><div id="updW" class="bar updW"></div><div id="pendW" class="bar pendW"></div><div id="view">${viewHTML(u)}</div></main>
   <nav class="tabs">${tabsOf(u).map(x=>navBtn(...x)).join("")}</nav>`;
   bindMain(u);paintSync();paintUpd();
 }
 /* ONE list feeds the bottom tabs AND the Home tiles (same screens, icons, names, order) */
-function tabsOf(u){return [["home","🏠"],...(workOk(u)?[["work","🧩"]]:[]),...(repOk(u)&&REPORTS.length?[["reports","📊"]]:[]),["can","✅"],...(u.admin?[["users","👥",users().filter(x=>x.status==="pending").length]]:[]),["settings","⚙️"]]}
+function tabsOf(u){return [["home","🏠"],...(workOk(u)?[["work","🧩"]]:[]),...(repOk(u)&&REPORTS.length?[["reports","📊"]]:[]),...(window.TMC.appTabs?window.TMC.appTabs(u):[]),["can","✅"],...(u.admin?[["users","👥",users().filter(x=>x.status==="pending").length]]:[]),["settings","⚙️"]]}
 function repOk(u){u=u||me();return !!u&&(!!u.admin||can("reports",u))}
 function workOk(u){return (C.PERMS||[]).length===0||["view","add","reports","export"].some(p=>can(p,u))}
 function navBtn(k,ic,n){return `<button type="button" data-tab="${k}" class="${tab===k?"on":""}"><span class="ticon">${ic}</span><span class="tlab">${esc(t(k))}</span>${n?`<span class="badge">${n}</span>`:""}</button>`}
@@ -391,7 +432,7 @@ function signinHTML(){
   if(f.s==="dup")return card(`<h2 id="dupT">✋ ${esc(t("dupT"))}</h2><p class="hint" style="font-size:18px">${esc(t("dupH"))}</p><button type="button" id="fCheck" style="min-height:60px">${esc(t("check"))}</button><button type="button" class="sec" id="fOther" style="min-height:60px">${esc(t("other"))}</button>`);
   if(f.s==="rej")return card(`<h2>❌ ${esc(t("rejT"))}</h2><p class="hint">${esc(t("rejH"))}</p><button type="button" class="sec" id="fOther">${esc(t("other"))}</button>`);
   if(f.s==="blk")return card(`<h2>⛔ ${esc(t("blkT"))}</h2><p class="hint">${esc(t("blkH"))}</p><button type="button" class="sec" id="fOther">${esc(t("other"))}</button>`);
-  return `<div class="full tmcS" style="--tmcS-c:${esc(C.COLOR)};--tmcS-cd:${esc(C.COLOR_DARK)}"><div class="signin"><div class="card"><img class="tmcS-logo logo" src="icons/icon-192.png?v=6" width="84" height="84" alt=""><h2 class="tmcS-t">${esc(C.NAME)}</h2><select id="langSel" class="tmcS-lang" aria-label="Language">${["en","fr","ar"].map(l=>`<option value="${l}"${l===lang?" selected":""}>🌐 ${l==="en"?"English":l==="fr"?"Français":"العربية"}</option>`).join("")}</select><input id="fName" class="tmcS-name" name="${C.APP_ID}-who" type="text" autocomplete="off" autocapitalize="words" spellcheck="true" autocorrect="on" data-lpignore="true" data-1p-ignore="true" placeholder="${esc(t("nameH"))}" value="${esc(L.get("lastName")||"")}"><p class="err tmcS-err" id="fErr"></p><button type="button" id="fName2" class="tmcS-go">${esc(t("go"))}</button>${insHTML()}</div><div id="ncW" class="bar ncW ncBox" role="alert"></div></div></div>`;
+  return `<div class="full tmcS" style="--tmcS-c:${esc(C.COLOR)};--tmcS-cd:${esc(C.COLOR_DARK)}"><div class="signin"><div class="card"><img class="tmcS-logo logo" src="icons/icon-192.png?v=7" width="84" height="84" alt=""><h2 class="tmcS-t">${esc(C.NAME)}</h2><select id="langSel" class="tmcS-lang" aria-label="Language">${["en","fr","ar"].map(l=>`<option value="${l}"${l===lang?" selected":""}>🌐 ${l==="en"?"English":l==="fr"?"Français":"العربية"}</option>`).join("")}</select><input id="fName" class="tmcS-name" name="${C.APP_ID}-who" type="text" autocomplete="off" autocapitalize="words" spellcheck="true" autocorrect="on" data-lpignore="true" data-1p-ignore="true" placeholder="${esc(t("nameH"))}" value="${esc(L.get("lastName")||"")}"><p class="err tmcS-err" id="fErr"></p><button type="button" id="fName2" class="tmcS-go">${esc(t("go"))}</button>${insHTML()}</div><div id="ncW" class="bar ncW ncBox" role="alert"></div></div></div>`;
 }
 function err(m){const e=$("fErr");if(e){e.textContent=m;e.style.display="block"}}
 function bindCommon(){
@@ -483,8 +524,9 @@ function viewHTML(u){
   if(tab==="settings")return settingsHTML(u);
   if(tab==="can")return canHTML(u);
   if(tab==="reports")return repScreenHTML(u);
+  /* SERVICE HOOK 4 (v7): app screens (Parts store) */if(window.TMC.appViews&&window.TMC.appViews[tab])return window.TMC.appViews[tab].html(u);
   const np=users().filter(x=>x.status==="pending").length;
-  return `<div class="box hhero" id="hHero"><img src="icons/icon-192.png?v=6" alt="" width="64" height="64"><div><h2>${esc(C.NAME)}</h2><div id="hDate">${esc(new Date().toLocaleDateString(lang==="ar"?"ar-TD":lang==="fr"?"fr-FR":"en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric"}))}</div><div class="hhi" id="hHello">👋 ${esc(t("hello"))}, ${esc(u.name)}</div></div></div><button type="button" class="sec loBand" id="hOut">${esc(t("logout"))}</button>
+  return `<div class="box hhero" id="hHero"><img src="icons/icon-192.png?v=7" alt="" width="64" height="64"><div><h2>${esc(C.NAME)}</h2><div id="hDate">${esc(new Date().toLocaleDateString(lang==="ar"?"ar-TD":lang==="fr"?"fr-FR":"en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric"}))}</div><div class="hhi" id="hHello">👋 ${esc(t("hello"))}, ${esc(u.name)}</div></div></div><button type="button" class="sec loBand" id="hOut">${esc(t("logout"))}</button>
   <div class="tiles">${tabsOf(u).filter(x=>x[0]!=="home").map(([k,ic,n])=>`<button type="button" class="tile" data-tab="${k}"${k==="can"?' id="hCan"':""}><b>${ic}</b>${esc(t(k))}${n?` (${n})`:""}</button>`).join("")}</div>${/* SERVICE HOOK 1/3 (approved): app list on Home */""}${window.TMC.homeExtra?window.TMC.homeExtra(u):""}`;
 }
 /* ---- PHOTO: every photo field = 2 big buttons (camera OR phone gallery), same handler ----
@@ -677,7 +719,7 @@ const svLastC=s=>!s.p?(s.v.reading==null||s.v.reading===""?"—":svNum(s.v.readi
 const svDueC=s=>!s.p?"—":s.p.unit==="m"?svDt(s.p.due):svNum(s.p.due)+" "+svU(s.p.unit);
 const svRemC=s=>{if(s.g===3)return s.l.txt;const n=s.l.n,u=s.p.unit==="m"?" "+t("rsDays"):" "+svU(s.p.unit);return (n<0?"−":"")+svNum(Math.abs(n))+u};
 function svPrintHTML(u){const S=svStats(),cnt=[0,0,0,0];S.forEach(s=>cnt[s.g]++);const [f,to]=svRange(),D=svDone(f,to),site=svSite();
- return `<div id="svPrint" class="svA4"><div class="hd"><div class="l"><img src="icons/icon-192.png?v=6" alt=""><div><div class="co">${esc(C.NAME)}</div><div class="co2">${esc(t("rsTitle"))}</div></div></div>
+ return `<div id="svPrint" class="svA4"><div class="hd"><div class="l"><img src="icons/icon-192.png?v=7" alt=""><div><div class="co">${esc(C.NAME)}</div><div class="co2">${esc(t("rsTitle"))}</div></div></div>
  <div class="r"><div class="title">${esc(t("rsA4T"))}</div><table class="meta"><tr><td class="k">${esc(t("rsPer"))}</td><td>${esc(svDt(f))} – ${esc(svDt(to))}</td></tr><tr><td class="k">${esc(t("rsRDate"))}</td><td>${esc(svDt(svToday()))}</td></tr><tr><td class="k">${esc(t("rsSite"))}</td><td id="svA4Site">${esc(site||"—")}</td></tr></table></div></div>
  <h2>${esc(t("rsSum"))}</h2><div class="sum"><div><span class="mk m-r"></span>${esc(t("rsOver"))}&nbsp;<b>${cnt[0]}</b></div><div><span class="mk m-a"></span>${esc(t("rsSoon"))}&nbsp;<b>${cnt[1]}</b></div><div><span class="mk m-g"></span>${esc(t("rsOk"))}&nbsp;<b>${cnt[2]}</b></div><div>${esc(t("rsTotU"))}&nbsp;<b>${S.length}</b></div></div>
  <h2>${esc(t("rsSec2"))}</h2><table class="t" id="svA4St"><thead><tr><th>${esc(t("rsUnit"))}</th><th>${esc(t("rsDesc"))}</th><th>${esc(t("rsBasis"))}</th><th class="n">${esc(t("rsLastM"))}</th><th class="n">${esc(t("rsDueAtC"))}</th><th class="n">${esc(t("rsRem"))}</th><th>${esc(t("rsStat"))}</th></tr></thead><tbody>
@@ -720,8 +762,11 @@ Object.assign(window.TMC,{svStats:svStats,svDone:svDone,svRange:svRange,svRp:()=
 function workHTML(u){
   const V=svVeh(),v=V.find(x=>String(x.fleet)===svSel),ed=canKind("s","add");
   let top=`<div class="box"><h2>${esc(t("svT"))}</h2><p class="hint">${esc(t("svPick"))}</p>${svListHTML()}</div>`;
+  if(v&&jcMode==="new"&&jcD&&jcD.fleet===String(v.fleet)&&canKind("jc","add"))return jcFormHTML(u,v);
+  if(v&&jcMode==="list"&&canKind("jc","view"))return jcListHTML(u,v);
+  if(v&&!ed&&(canKind("jc","view")||canKind("jc","add"))){top=`<div class="box" id="svEd"><h2>${esc(v.fleet)} ${esc(v.name||"")}</h2>${jcBtns(v)}<button type="button" class="sec" id="svBack">${esc(t("back"))}</button></div>`;svSel=String(v.fleet)}
   if(v&&ed){const p=svPlan(v.fleet)||{},un=p.unit||svDefUnit(v);
-    top=`<div class="box" id="svEd"><h2>${esc(v.fleet)} ${esc(v.name||"")}</h2><p style="font-size:20px">${esc(t("svNow"))}: <b>${esc(v.reading==null?"-":v.reading)}</b> <span class="hint">(${esc(t("svFrom"))} ${esc(v.day||"")})</span></p>
+    top=`<div class="box" id="svEd"><h2>${esc(v.fleet)} ${esc(v.name||"")}</h2>${jcBtns(v)}<p style="font-size:20px">${esc(t("svNow"))}: <b>${esc(v.reading==null?"-":v.reading)}</b> <span class="hint">(${esc(t("svFrom"))} ${esc(v.day||"")})</span></p>
     <h3>${esc(t("svUnit"))}</h3>${[["km","uKm"],["h","uH"],["m","uM"]].map(([k,l])=>`<button type="button" class="${un===k?"":"sec"} svU" data-u="${k}" style="min-height:64px;font-size:20px">${esc(t(l))}</button>`).join("")}
     <h3>${esc(un==="m"?t("svDate"):t("svDue"))}</h3><input id="svDue" ${un==="m"?'type="date"':'type="text" inputmode="decimal"'} style="font-size:24px;min-height:64px" value="${esc(p.unit===un?(p.due||""):"")}">
     <h3>${esc(un==="m"?t("svEveryM"):t("svEvery"))}</h3><input id="svEvery" type="text" inputmode="decimal" style="font-size:24px;min-height:64px" value="${esc(svEv(v.fleet,un)||"")}"><p class="hint">${esc(t("svAuto"))}</p>
@@ -736,12 +781,12 @@ function workHTML(u){
   ${canKind("x","view")?(notes.length?notes.map(n=>`<div class="urow" data-id="${esc(n.id)}"><span class="n">${esc(n.text)}</span><span class="hint">${esc(n.by)}</span>${fixBtn("x",n.id,"text")}${fixedNote(n)}</div>`).join(""):`<p class="hint">${esc(t("exNone"))}</p>`):""}</div>
   ${tools?`<div class="box">${tools}<div class="hint" id="exOut"></div></div>`:""}`;
 }
-function bindSvList(){document.querySelectorAll(".svV").forEach(b=>b.onclick=()=>{svSel=b.dataset.f;tab="work";render()})}
+function bindSvList(){document.querySelectorAll(".svV").forEach(b=>b.onclick=()=>{svSel=b.dataset.f;tab="work";jcMode="";jcD=null;render()})}
 window.TMC.bindHomeExtra=bindSvList;
 function bindWork(u){
   const on=(id,f)=>{const e=$(id);if(e)e.onclick=f};bindSvList();
   document.querySelectorAll(".svU").forEach(b=>b.onclick=()=>{const p=svPlan(svSel)||{};window.TMC.svUnit=b.dataset.u;const tmp=Object.assign({},p,{unit:b.dataset.u,due:p.unit===b.dataset.u?p.due:""});window.TMC.svTmp=tmp;svUnitOverride=b.dataset.u;render()});
-  on("svBack",()=>{svSel="";render()});
+  on("svBack",()=>{svSel="";jcMode="";jcD=null;render()});bindJob(u);
   on("svSave",()=>{const un=window.TMC.svUnit,veh=svVeh().find(x=>String(x.fleet)===svSel)||{},evS=($("svEvery")?$("svEvery").value.trim():""),ev=evS===""?"":Number(evS),done=!!($("svDone")&&$("svDone").checked),note=$("svNote")?$("svNote").value.trim():"";let v=$("svDue").value.trim();
     const bad=()=>{const e=$("svErr");e.textContent=t("svBad");e.style.display="block"};
     if(evS!==""&&!(isFinite(ev)&&ev>0))return bad();
@@ -757,6 +802,162 @@ function bindWork(u){
 }
 let svUnitOverride="";
 const _svPlan=svPlan;svPlan=function(f){const p=_svPlan(f);if(svUnitOverride&&String(f)===svSel)return Object.assign({},p||{},{unit:svUnitOverride,due:p&&p.unit===svUnitOverride?p.due:""});return p};
+/* ---- v7 PARTS STORE + JOB CARDS. Service's own records + Sheet only (no link to GRV or any other app).
+   kind "pt" = part {id,pn,name,unit,qty0 (qty in stock when added),min,by,at}
+   kind "sc" = Admin stock correction = the correction LOG (append-only) {id,pid,pn,name,old,new,delta,reason,by,at}
+   kind "jc" = job card {id,no,fleet,name,date,meter,mu,work,by,parts:[{pid,pn,name,unit,qty}],unit,every,due,sid,override?,user,at}
+   Stock = qty when added + Admin corrections − parts used on job cards. Every record is ADDED, never changed,
+   so staff keep the ADMIN FIX RULE (add only) and the server can check stock too. */
+Object.assign(T.en,{store:"📦 Parts store",stT:"📦 Parts store",stAdd:"➕ Add part",stOrd:"🛒 To order",stLog:"📒 Stock correction log",stQ:"Search part number or name",stNone:"No parts yet. Tap “Add part”.",stPn:"Part number",stName:"Part name",stUnit:"Unit (pcs, L, kg…)",stQty:"Qty in stock",stMin:"Minimum level",stSave:"💾 Save part",stIn:"In stock",stMinS:"Min",stLow:"BELOW MIN",stBad:"Fill in part number and name, and numbers (0 or more) for qty and minimum.",stDup:"This part number is already in the store.",stOrdT:"🛒 To order – below minimum",stOrdNone:"Nothing to order. All parts are at or above the minimum.",stOrdQ:"To order",stXls:"📊 Excel",stFix:"✏️ Correct stock (Admin)",stFixT:"✏️ Stock correction (Admin)",stNow:"In stock now",stReal:"Real count now",stWhy:"Reason (required)",stFixSave:"💾 Save correction",stWhyNeed:"Type the real count (0 or more) and a reason.",stLogNone:"No corrections yet.",stOld:"Was",stNew:"Now",stSaved:"Part saved.",stFixOk:"Stock corrected and logged.",stNoView:"You may not see the parts store. Ask the Admin.",stTotO:"Total to order",
+ jcNew:"📋 New job card",jcList:"📋 Jobs",jcT:"📋 Job card",jcVeh:"Vehicle / machine",jcDate:"Date",jcMeter:"Meter",jcWork:"Work done",jcBy:"Done by",jcParts:"Parts used (from the store)",jcPick:"Pick a part",jcQty:"Qty used",jcAddP:"➕ Add to job",jcNoP:"No parts on this job.",jcNext:"Next service after this job",jcSave:"💾 Save job card",jcNeg:"Not enough stock",jcNegAdm:"Only the Admin can save with stock below zero.",jcOver:"⚠️ Admin override: save even if stock goes below zero",jcBad:"Fill in the date (today or earlier), work done and done by.",jcNoMeter:"No meter reading from Fuel yet for this vehicle.",jcEvBad:"Type the service interval (Every) so the countdown can restart.",jcOk:"Job card saved. Stock updated, countdown restarted.",jcNone:"No job cards for this vehicle yet.",jcPrint:"🖨️ Print A4 job card",jcNo:"Job no.",jcA4T:"Vehicle Service Job Card",jcSec1:"1. Vehicle / machine",jcSec2:"2. Work done",jcSec3:"3. Parts used",jcSec4:"4. Sign-off",jcTotP:"Total parts used",jcNextAt:"Next service due",jcOverN:"Admin override – stock went below zero",jcRestart:"Countdown restarts at",jcHave:"have",jcNeed:"need",jcNegRef:"The server refused a job card: not enough stock.",jcBadQ:"Pick a part and type a qty above 0."});
+Object.assign(T.fr,{store:"📦 Magasin pièces",stT:"📦 Magasin de pièces",stAdd:"➕ Ajouter une pièce",stOrd:"🛒 À commander",stLog:"📒 Journal des corrections",stQ:"Chercher référence ou nom",stNone:"Pas encore de pièces. Touchez « Ajouter une pièce ».",stPn:"Référence",stName:"Nom de la pièce",stUnit:"Unité (pcs, L, kg…)",stQty:"Qté en stock",stMin:"Niveau minimum",stSave:"💾 Enregistrer la pièce",stIn:"En stock",stMinS:"Min",stLow:"SOUS LE MIN",stBad:"Remplissez la référence et le nom, et des nombres (0 ou plus) pour la qté et le minimum.",stDup:"Cette référence est déjà dans le magasin.",stOrdT:"🛒 À commander – sous le minimum",stOrdNone:"Rien à commander. Toutes les pièces sont au minimum ou plus.",stOrdQ:"À commander",stXls:"📊 Excel",stFix:"✏️ Corriger le stock (Admin)",stFixT:"✏️ Correction de stock (Admin)",stNow:"En stock maintenant",stReal:"Compté réellement",stWhy:"Raison (obligatoire)",stFixSave:"💾 Enregistrer la correction",stWhyNeed:"Tapez le compte réel (0 ou plus) et une raison.",stLogNone:"Pas encore de corrections.",stOld:"Avant",stNew:"Après",stSaved:"Pièce enregistrée.",stFixOk:"Stock corrigé et noté au journal.",stNoView:"Vous ne pouvez pas voir le magasin. Demandez à l'Admin.",stTotO:"Total à commander",
+ jcNew:"📋 Nouvelle fiche de travail",jcList:"📋 Travaux",jcT:"📋 Fiche de travail",jcVeh:"Véhicule / machine",jcDate:"Date",jcMeter:"Compteur",jcWork:"Travail fait",jcBy:"Fait par",jcParts:"Pièces utilisées (du magasin)",jcPick:"Choisir une pièce",jcQty:"Qté utilisée",jcAddP:"➕ Ajouter au travail",jcNoP:"Aucune pièce sur ce travail.",jcNext:"Prochain entretien après ce travail",jcSave:"💾 Enregistrer la fiche",jcNeg:"Stock insuffisant",jcNegAdm:"Seul l'Admin peut enregistrer avec un stock sous zéro.",jcOver:"⚠️ Dérogation Admin : enregistrer même si le stock passe sous zéro",jcBad:"Remplissez la date (aujourd'hui ou avant), le travail fait et fait par.",jcNoMeter:"Pas encore de relevé compteur de Fuel pour ce véhicule.",jcEvBad:"Tapez l'intervalle (Tous les) pour relancer le compte à rebours.",jcOk:"Fiche enregistrée. Stock mis à jour, compte à rebours relancé.",jcNone:"Pas encore de fiches pour ce véhicule.",jcPrint:"🖨️ Imprimer la fiche A4",jcNo:"N° de fiche",jcA4T:"Fiche de travail d'entretien",jcSec1:"1. Véhicule / machine",jcSec2:"2. Travail fait",jcSec3:"3. Pièces utilisées",jcSec4:"4. Validation",jcTotP:"Total des pièces utilisées",jcNextAt:"Prochain entretien prévu",jcOverN:"Dérogation Admin – stock passé sous zéro",jcRestart:"Le compte à rebours repart à",jcHave:"en stock",jcNeed:"besoin",jcNegRef:"Le serveur a refusé une fiche : stock insuffisant.",jcBadQ:"Choisissez une pièce et une qté au-dessus de 0."});
+Object.assign(T.ar,{store:"📦 مخزن القطع",stT:"📦 مخزن القطع",stAdd:"➕ إضافة قطعة",stOrd:"🛒 للطلب",stLog:"📒 سجل تصحيح المخزون",stQ:"ابحث برقم القطعة أو الاسم",stNone:"لا توجد قطع بعد. اضغط «إضافة قطعة».",stPn:"رقم القطعة",stName:"اسم القطعة",stUnit:"الوحدة (قطعة، لتر، كغ…)",stQty:"الكمية في المخزون",stMin:"الحد الأدنى",stSave:"💾 حفظ القطعة",stIn:"في المخزون",stMinS:"الأدنى",stLow:"تحت الحد الأدنى",stBad:"املأ رقم القطعة والاسم، وأرقاماً (0 أو أكثر) للكمية والحد الأدنى.",stDup:"رقم القطعة هذا موجود في المخزن.",stOrdT:"🛒 للطلب – تحت الحد الأدنى",stOrdNone:"لا شيء للطلب. كل القطع عند الحد الأدنى أو أكثر.",stOrdQ:"للطلب",stXls:"📊 Excel",stFix:"✏️ تصحيح المخزون (المدير)",stFixT:"✏️ تصحيح المخزون (المدير)",stNow:"في المخزون الآن",stReal:"العدد الفعلي الآن",stWhy:"السبب (إلزامي)",stFixSave:"💾 حفظ التصحيح",stWhyNeed:"اكتب العدد الفعلي (0 أو أكثر) وسبباً.",stLogNone:"لا توجد تصحيحات بعد.",stOld:"كان",stNew:"الآن",stSaved:"تم حفظ القطعة.",stFixOk:"تم تصحيح المخزون وتسجيله.",stNoView:"لا يمكنك رؤية مخزن القطع. اسأل المدير.",stTotO:"مجموع الطلب",
+ jcNew:"📋 بطاقة عمل جديدة",jcList:"📋 الأعمال",jcT:"📋 بطاقة عمل",jcVeh:"المركبة / الآلة",jcDate:"التاريخ",jcMeter:"العداد",jcWork:"العمل المنجز",jcBy:"أنجزه",jcParts:"القطع المستعملة (من المخزن)",jcPick:"اختر قطعة",jcQty:"الكمية المستعملة",jcAddP:"➕ أضف إلى العمل",jcNoP:"لا توجد قطع في هذا العمل.",jcNext:"الصيانة القادمة بعد هذا العمل",jcSave:"💾 حفظ بطاقة العمل",jcNeg:"المخزون غير كافٍ",jcNegAdm:"المدير فقط يمكنه الحفظ والمخزون تحت الصفر.",jcOver:"⚠️ تجاوز المدير: احفظ حتى لو نزل المخزون تحت الصفر",jcBad:"املأ التاريخ (اليوم أو قبله) والعمل المنجز ومن أنجزه.",jcNoMeter:"لا توجد قراءة عداد من Fuel لهذه المركبة بعد.",jcEvBad:"اكتب فترة الصيانة (كل) ليبدأ العد التنازلي من جديد.",jcOk:"تم حفظ بطاقة العمل. تم تحديث المخزون وإعادة العد التنازلي.",jcNone:"لا توجد بطاقات عمل لهذه المركبة بعد.",jcPrint:"🖨️ طباعة بطاقة العمل A4",jcNo:"رقم البطاقة",jcA4T:"بطاقة عمل صيانة المركبة",jcSec1:"1. المركبة / الآلة",jcSec2:"2. العمل المنجز",jcSec3:"3. القطع المستعملة",jcSec4:"4. الاعتماد",jcTotP:"مجموع القطع المستعملة",jcNextAt:"موعد الصيانة القادمة",jcOverN:"تجاوز المدير – نزل المخزون تحت الصفر",jcRestart:"يبدأ العد التنازلي من جديد عند",jcHave:"المتوفر",jcNeed:"المطلوب",jcNegRef:"رفض الخادم بطاقة عمل: المخزون غير كافٍ.",jcBadQ:"اختر قطعة واكتب كمية أكبر من 0."});
+const chadDT=iso=>{const d=new Date(iso);return isNaN(d)?String(iso||""):new Date(d.getTime()+CHAD_MS).toISOString().slice(0,16).replace("T"," ")};
+const stParts=()=>all("pt").slice().sort((a,b)=>String(a.pn).localeCompare(String(b.pn),undefined,{numeric:true}));
+const stPart=pid=>all("pt").find(x=>String(x.id)===String(pid))||null;
+const stR=n=>Math.round(n*1000)/1000;
+function stStock(pid){const p=stPart(pid);let q=p?(+p.qty0||0):0;all("sc").forEach(c=>{if(String(c.pid)===String(pid))q+=(+c.delta||0)});all("jc").forEach(j=>(j.parts||[]).forEach(l=>{if(String(l.pid)===String(pid))q-=(+l.qty||0)}));return stR(q)}
+const stMinOf=p=>+p.min||0;
+const stOrder=()=>stParts().filter(p=>stStock(p.id)<stMinOf(p));
+const stOk=u=>can("store",u)||can("storeEd",u);
+let stMode="";
+window.TMC.appTabs=u=>stOk(u)?[["store","📦"]]:[];
+function storeHTML(u){
+ if(!stOk(u))return `<div class="box"><p>${esc(t("stNoView"))}</p></div>`;
+ if(stMode==="add"&&canKind("pt","add"))return stAddHTML();
+ if(stMode==="order")return stOrdHTML(u);
+ if(stMode==="log")return stLogHTML();
+ if(stMode.indexOf("fix:")===0&&canKind("sc","add"))return stFixHTML(stMode.slice(4));
+ const P=stParts(),nO=stOrder().length;
+ return `<div class="box" id="stBox"><h2>${esc(t("stT"))}</h2>
+ ${canKind("pt","add")?`<button type="button" class="stBig stGreen" id="stAddB">${esc(t("stAdd"))}</button>`:""}
+ <button type="button" class="stBig stRed" id="stOrdB">${esc(t("stOrd"))} (${nO})</button>
+ ${P.length?`<input id="stQ" type="search" autocomplete="off" spellcheck="false" placeholder="${esc(t("stQ"))}" style="font-size:20px;min-height:56px">`:""}
+ <div id="stList">${P.length?P.map(stCard).join(""):`<p class="hint">${esc(t("stNone"))}</p>`}</div>
+ <button type="button" class="sec" id="stLogB">${esc(t("stLog"))} (${all("sc").length})</button></div>`}
+function stCard(p){const s=stStock(p.id),low=s<stMinOf(p);
+ return `<div class="stIt${low?" low":""}" data-pid="${esc(p.id)}" data-q="${esc((String(p.pn)+" "+String(p.name)).toLowerCase())}"><div class="top"><span class="pn">${esc(p.pn)}</span>${low?`<span class="pill">${esc(t("stLow"))}</span>`:""}</div>
+ <div class="nm">${esc(p.name)}</div><div class="q"><b class="stQn">${esc(svNum(s))}</b> ${esc(p.unit||"")} <span class="hint">${esc(t("stIn"))}</span> · ${esc(t("stMinS"))} <b class="stMn">${esc(svNum(stMinOf(p)))}</b></div>${fixedNote(p)}
+ ${canFix()?`<button type="button" class="fixB stPFix" data-pfix="${esc(p.id)}">${esc(t("fix"))}</button>`:""}${canKind("sc","add")?`<button type="button" class="sec stFixB" data-scp="${esc(p.id)}">${esc(t("stFix"))}</button>`:""}</div>`}
+const stIn=(id,lab,typ,extra)=>`<h3><label for="${id}">${esc(t(lab))}</label></h3><input id="${id}" type="text"${typ==="n"?' inputmode="decimal"':""} autocomplete="off" spellcheck="false" style="font-size:22px;min-height:60px"${extra||""}>`;
+function stAddHTML(){return `<div class="box" id="stAdd"><h2>${esc(t("stAdd"))}</h2>${stIn("pPn","stPn")}${stIn("pName","stName")}${stIn("pUnit","stUnit","",' list="pUnits" value="pcs"')}<datalist id="pUnits"><option value="pcs"><option value="L"><option value="kg"><option value="m"><option value="set"></datalist>${stIn("pQty","stQty","n")}${stIn("pMin","stMin","n")}
+ <p class="err" id="pErr"></p><button type="button" class="stBig stGreen" id="pSave">${esc(t("stSave"))}</button><button type="button" class="sec" id="stBack">${esc(t("back"))}</button></div>`}
+function stOrdHTML(u){const O=stOrder();
+ return `<div class="box stOrdBox" id="stOrd"><h2 class="stRedH">${esc(t("stOrdT"))}</h2>${O.length?`<table class="stTbl" id="stOrdT"><thead><tr><th>${esc(t("stPn"))}</th><th>${esc(t("stName"))}</th><th class="n">${esc(t("stIn"))}</th><th class="n">${esc(t("stMinS"))}</th><th class="n">${esc(t("stOrdQ"))}</th></tr></thead><tbody>${O.map(p=>{const s=stStock(p.id);return `<tr data-pid="${esc(p.id)}"><td><b>${esc(p.pn)}</b></td><td>${esc(p.name)}</td><td class="n">${esc(svNum(s))} ${esc(p.unit||"")}</td><td class="n">${esc(svNum(stMinOf(p)))}</td><td class="n"><b>${esc(svNum(stR(stMinOf(p)-s)))}</b></td></tr>`}).join("")}</tbody></table>`:`<p class="hint" id="stOrdNone">${esc(t("stOrdNone"))}</p>`}
+ ${O.length&&canXlsU(u)?`<button type="button" class="stBig stGreen" id="stXls">${esc(t("stXls"))}</button>`:""}<button type="button" class="sec" id="stBack">${esc(t("back"))}</button></div>`}
+function stOrdXlsx(){const O=stOrder(),R=[[{v:C.NAME+" – "+t("stOrdT").replace("🛒 ",""),s:"title"}],[t("rsRDate"),{v:svToday(),s:"bold"}],[t("rsSite"),{v:svSite()||"—",s:"bold"}],[],[t("stPn"),t("stName"),t("rsUnit"),t("stIn"),t("stMinS"),t("stOrdQ")].map(v=>({v:v,s:"h"}))],a=R.length+1;
+ O.forEach((p,i)=>{const st=i%2?"a":"b",s=stStock(p.id);R.push([{v:String(p.pn),s:st},{v:String(p.name),s:st},{v:String(p.unit||""),s:st},{v:s,s:st},{v:stMinOf(p),s:st},{v:stR(stMinOf(p)-s),s:st}])});
+ const b=R.length;R.push([{v:t("stTotO"),s:"t"},{v:"",s:"t"},{v:"",s:"t"},{v:"",s:"t"},{v:"",s:"t"},{v:stR(O.reduce((x,p)=>x+stMinOf(p)-stStock(p.id),0)),s:"t",f:`SUM(F${a}:F${b})`}]);
+ R.push([],[t("rsPrintedBy")+" "+((me()||{}).name||"")+" · "+svStamp()]);
+ return {name:(C.SHORT+" "+t("stOrdQ")+" "+svToday()).replace(/[\\\/:*?"<>|]/g," ")+".xlsx",blob:XL.book(t("stOrdQ"),R,[16,28,10,12,12,14],C.REPORT_COLOR),rows:R}}
+function stLogHTML(){const G=all("sc").slice().sort((a,b)=>String(b.at).localeCompare(String(a.at)));
+ return `<div class="box" id="scLog"><h2>${esc(t("stLog"))}</h2>${G.length?G.map(c=>`<div class="scIt" data-pid="${esc(c.pid)}"><div class="r1"><span>${esc(c.pn)} ${esc(c.name)}</span><span>${esc(chadDT(c.at))}</span></div><div class="r2">${esc(t("stOld"))} <b>${esc(svNum(c.old))}</b> → ${esc(t("stNew"))} <b>${esc(svNum(c.new))}</b> (${+c.delta>0?"+":""}${esc(svNum(c.delta))})</div><div class="r3">📝 ${esc(c.reason)}</div><div class="hint">${esc(t("rsBy"))}: ${esc(c.by)}</div></div>`).join(""):`<p class="hint">${esc(t("stLogNone"))}</p>`}<button type="button" class="sec" id="stBack">${esc(t("back"))}</button></div>`}
+function stFixHTML(pid){const p=stPart(pid);if(!p){stMode="";return storeHTML(me())}const s=stStock(p.id);
+ return `<div class="box" id="scForm"><h2>${esc(t("stFixT"))}</h2><p style="font-size:20px"><b>${esc(p.pn)}</b> ${esc(p.name)}</p><p style="font-size:20px">${esc(t("stNow"))}: <b id="scOld">${esc(svNum(s))}</b> ${esc(p.unit||"")}</p>
+ ${stIn("scNew","stReal","n")}${stIn("scWhy","stWhy","",' maxlength="200"')}<p class="err" id="scErr"></p><button type="button" class="stBig stGreen" id="scSave">${esc(t("stFixSave"))}</button><button type="button" class="sec" id="stBack">${esc(t("back"))}</button></div>`}
+const errSet=(id,m)=>{const e=$(id);if(e){e.textContent=m;e.style.display="block"}return false};
+const numOk=x=>String(x).trim()!==""&&isFinite(Number(String(x).replace(",",".")))&&Number(String(x).replace(",","."))>=0;
+const numV=x=>Number(String(x).replace(",","."));
+function bindStore(u){const on=(id,f)=>{const e=$(id);if(e)e.onclick=f};
+ document.querySelectorAll("#stAdd input,#scForm input").forEach(i=>i.addEventListener("input",()=>document.querySelectorAll("#pErr,#scErr").forEach(e=>e.style.display="none")));
+ on("stAddB",()=>{stMode="add";render()});on("stOrdB",()=>{stMode="order";render()});on("stLogB",()=>{stMode="log";render()});on("stBack",()=>{stMode="";render()});
+ document.querySelectorAll("[data-scp]").forEach(b=>b.onclick=()=>{stMode="fix:"+b.dataset.scp;render()});
+ const q=$("stQ");if(q)q.oninput=()=>{const v=q.value.trim().toLowerCase();document.querySelectorAll(".stIt").forEach(e=>e.style.display=!v||e.dataset.q.indexOf(v)>=0?"":"none")};
+ on("pSave",()=>{const pn=$("pPn").value.trim(),name=$("pName").value.trim(),unit=$("pUnit").value.trim(),qs=$("pQty").value,ms=$("pMin").value;
+  if(!pn||!name||!numOk(qs)||!numOk(ms))return errSet("pErr",t("stBad"));
+  if(all("pt").some(p=>String(p.pn).trim().toLowerCase()===pn.toLowerCase()))return errSet("pErr",t("stDup"));
+  const id="p"+Date.now();if(put("pt",id,{id:id,pn:pn,name:name,unit:unit,qty0:numV(qs),min:numV(ms),by:u.name,at:new Date().toISOString()})===false)return;stMode="";toast(t("stSaved"));render()});
+ on("stXls",()=>sendXls(stOrdXlsx()));
+ on("scSave",()=>{const pid=stMode.slice(4),p=stPart(pid),ns=$("scNew").value,why=$("scWhy").value.trim();if(!p)return;
+  if(!numOk(ns)||!why)return errSet("scErr",t("stWhyNeed"));
+  const old=stStock(pid),nw=numV(ns),id="c"+Date.now();
+  if(put("sc",id,{id:id,pid:String(pid),pn:p.pn,name:p.name,old:old,new:nw,delta:stR(nw-old),reason:why,by:u.name,at:new Date().toISOString()})===false)return;stMode="";toast(t("stFixOk"));render()});
+ bindFix();
+ /* one Fix per part card: base Fix modal with the two fixable fields (name, minimum). Stock itself only changes via a logged correction. */
+ if(canFix())document.querySelectorAll(".stPFix").forEach(b=>b.onclick=()=>{const id=b.dataset.pfix,r=R["pt:"+id];if(!r)return;
+  const m=document.createElement("div");m.className="modal";m.innerHTML=`<div class="card"><h2>${esc(t("fixT"))}</h2><p><b>${esc(r.data.pn)}</b></p>${stIn("pfName","stName","")}${stIn("pfMin","stMin","n")}<p class="err" id="pfErr"></p><button type="button" id="fixS">${esc(t("fixSave"))}</button><button type="button" class="sec" id="fixX">${esc(t("close"))}</button></div>`;
+  document.body.appendChild(m);$("pfName").value=r.data.name||"";$("pfMin").value=String(stMinOf(r.data));const x=()=>m.remove();$("fixX").onclick=x;
+  $("fixS").onclick=()=>{const nm=$("pfName").value.trim(),ms=$("pfMin").value;if(!nm||!numOk(ms)||numV(ms)<0)return errSet("pfErr",t("stBad"));
+   fix("pt",id,"name",nm);if(String(stMinOf(R["pt:"+id].data))!==String(numV(ms)))fix("pt",id,"min",numV(ms));x();render()}})}
+window.TMC.appViews={store:{html:storeHTML,bind:bindStore}};
+/* ---- JOB CARD (Work tab → vehicle) ---- */
+let jcMode="",jcD=null,jcJob="";
+const jcVehNow=()=>svVeh().find(x=>String(x.fleet)===svSel);
+const jcHasM=v=>v&&v.reading!=null&&v.reading!==""&&isFinite(+v.reading);
+function jcStart(u,v){const p=svPlan(v.fleet)||{},un=window.TMC.svUnit||p.unit||svDefUnit(v);jcD={fleet:String(v.fleet),date:svToday(),work:"",by:u.name,unit:un,every:svEv(v.fleet,un)||"",parts:[],over:false}}
+function jcNeed(D){const n={};(D.parts||[]).forEach(l=>{n[l.pid]=stR((n[l.pid]||0)+(+l.qty||0))});return n}
+function jcNegs(D){const n=jcNeed(D);return Object.keys(n).filter(pid=>stStock(pid)-n[pid]<0).map(pid=>({pid:pid,have:stStock(pid),need:n[pid]}))}
+const jcNegTxt=N=>N.map(x=>{const p=stPart(x.pid)||{};return (p.pn||x.pid)+" ("+t("jcHave")+" "+svNum(x.have)+", "+t("jcNeed")+" "+svNum(x.need)+")"}).join("; ");
+function jcDue(D,v){const ev=Number(D.every);if(!(ev>0))return "";if(D.unit==="m")return /^\d{4}-\d{2}-\d{2}$/.test(D.date)?svAddM(D.date,ev):"";return jcHasM(v)?Math.round((+v.reading+ev)*10)/10:""}
+const jcDueTxt=(un,due)=>due===""||due==null?"—":un==="m"?svDt(due):svNum(due)+" "+svU(un);
+const jcJobs=f=>all("jc").filter(j=>String(j.fleet)===String(f)).sort((a,b)=>String(b.date).localeCompare(String(a.date))||String(b.at).localeCompare(String(a.at)));
+function jcFormHTML(u,v){const D=jcD,un=D.unit,N=jcNegs(D),P=stParts(),due=jcDue(D,v);
+ return `<div class="box" id="jcForm"><h2>${esc(t("jcT"))}</h2>
+ <div class="jcRow"><span class="k">${esc(t("jcVeh"))}</span><b id="jcVeh">${esc(v.fleet)} ${esc(v.name||"")}</b></div>
+ <div class="jcRow"><span class="k">${esc(t("jcMeter"))}</span><b id="jcMeter">${jcHasM(v)?esc(svNum(v.reading)+" "+svU(svDefUnit(v))):"—"}</b> <span class="hint">(${esc(t("svFrom"))} ${esc(jcDMY(v.day))})</span></div>
+ <h3><label for="jcDate">${esc(t("jcDate"))}</label></h3><div class="jcDW"><div id="jcDateTx" class="jcDTx" aria-hidden="true">📅 ${esc(jcDMY(D.date))}</div><input id="jcDate" type="date" max="${esc(svToday())}" value="${esc(D.date)}"></div>
+ <h3><label for="jcWork">${esc(t("jcWork"))}</label></h3><textarea id="jcWork" rows="3" spellcheck="true" autocorrect="on" autocapitalize="sentences" style="font-size:20px">${esc(D.work)}</textarea>
+ <h3><label for="jcBy">${esc(t("jcBy"))}</label></h3><input id="jcBy" type="text" autocomplete="off" value="${esc(D.by)}" style="font-size:22px;min-height:60px">
+ <h3>${esc(t("jcParts"))}</h3><div id="jcPL">${D.parts.length?D.parts.map((l,i)=>{const p=stPart(l.pid)||{},bad=N.some(x=>x.pid===String(l.pid));return `<div class="jcP${bad?" neg":""}" data-pid="${esc(l.pid)}"><span class="pn"><b>${esc(p.pn||"")}</b> ${esc(p.name||"")}</span><span class="q">× ${esc(svNum(l.qty))} ${esc(p.unit||"")}</span><span class="hint">${esc(t("stIn"))}: ${esc(svNum(stStock(l.pid)))}</span><button type="button" class="sm red jcRm" data-i="${i}" aria-label="remove">✖</button></div>`}).join(""):`<p class="hint">${esc(t("jcNoP"))}</p>`}</div>
+ ${P.length?`<select id="jcPart" style="font-size:19px;min-height:60px;width:100%"><option value="">${esc(t("jcPick"))}</option>${P.map(p=>`<option value="${esc(p.id)}">${esc(p.pn)} – ${esc(p.name)} (${esc(svNum(stStock(p.id)))} ${esc(p.unit||"")})</option>`).join("")}</select><div class="jcAdd"><input id="jcQty" type="text" inputmode="decimal" value="1" aria-label="${esc(t("jcQty"))}" style="font-size:22px;min-height:60px"><button type="button" class="sec" id="jcAddP">${esc(t("jcAddP"))}</button></div>`:`<p class="hint">${esc(t("stNone"))}</p>`}
+ <h3><label for="jcEvery">${esc(t("jcNext"))} – ${esc(un==="m"?t("svEveryM"):t("svEvery"))}</label></h3><input id="jcEvery" type="text" inputmode="decimal" value="${esc(D.every)}" style="font-size:22px;min-height:60px"><p class="hint" id="jcDueP">${esc(t("jcRestart"))}: <b>${esc(jcDueTxt(un,due))}</b></p>
+ ${N.length?`<div class="jcNegBox" id="jcNeg">⚠️ ${esc(t("jcNeg"))}: ${esc(jcNegTxt(N))}${u.admin?"":`<br>${esc(t("jcNegAdm"))}`}</div>${u.admin?`<label class="permT jcOverL"><span>${esc(t("jcOver"))}</span><input type="checkbox" id="jcOver"${D.over?" checked":""} style="width:32px;height:32px"></label>`:""}`:""}
+ <p class="err" id="jcErr"></p><button type="button" class="stBig stGreen" id="jcSave">${esc(t("jcSave"))}</button><button type="button" class="sec" id="jcBack">${esc(t("back"))}</button></div>`}
+function jcListHTML(u,v){const J=jcJobs(v.fleet);
+ return `<div class="box" id="jcList"><h2>${esc(t("jcList"))} – ${esc(v.fleet)} ${esc(v.name||"")}</h2>${canKind("jc","add")?`<button type="button" class="stBig stGreen" id="jcNewB">${esc(t("jcNew"))}</button>`:""}
+ ${J.length?J.map(j=>`<div class="jcIt" data-j="${esc(j.id)}"><div class="r1"><span>${esc(j.no||j.id)}</span><span>${esc(svDt(j.date))}</span></div><div class="r2">${esc(t("jcMeter"))}: ${esc(j.meter===""||j.meter==null?"—":svNum(j.meter)+" "+svU(j.mu))}</div><div class="r2b">${esc(t("jcBy"))}: <span class="jby" style="white-space:nowrap">${esc(j.by)}</span> ${fixBtn("jc",j.id,"by")}</div><div class="r3"><span class="jw">${esc(j.work)}</span> ${fixBtn("jc",j.id,"work")}</div><div class="r4">${(j.parts||[]).length?(j.parts||[]).map(l=>`🔩 ${esc(l.pn)} ${esc(l.name)} × ${esc(svNum(l.qty))} ${esc(l.unit||"")}`).join("<br>"):esc(t("jcNoP"))}</div><div class="hint">${esc(t("jcNextAt"))}: ${esc(jcDueTxt(j.unit,j.due))}</div>${j.override?`<div class="jcOvN">⚠️ ${esc(t("jcOverN"))} · ${esc(j.override.by||"")}</div>`:""}${fixedNote(j)}<button type="button" class="sec jcPrB" data-jp="${esc(j.id)}">${esc(t("jcPrint"))}</button></div>`).join(""):`<p class="hint">${esc(t("jcNone"))}</p>`}
+ <button type="button" class="sec" id="jcBack">${esc(t("back"))}</button></div>`}
+function jcBtns(v){const n=jcJobs(v.fleet).length;return `<div class="jcBtns">${canKind("jc","add")?`<button type="button" class="stBig stGreen" id="jcNewB">${esc(t("jcNew"))}</button>`:""}${canKind("jc","view")?`<button type="button" class="sec stBig" id="jcListB">${esc(t("jcList"))} (${n})</button>`:""}</div>`}
+function jcGrab(){const D=jcD;if(!D)return;const g=id=>$(id)?$(id).value:null;let x;
+ if((x=g("jcDate"))!=null)D.date=x.trim();if((x=g("jcWork"))!=null)D.work=x.trim();if((x=g("jcBy"))!=null)D.by=x.trim();if((x=g("jcEvery"))!=null)D.every=x.trim();if($("jcOver"))D.over=$("jcOver").checked}
+function jcSaveFn(u){jcGrab();const D=jcD,v=jcVehNow();if(!D||!v)return;
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(D.date)||D.date>svToday()||!D.work||!D.by)return errSet("jcErr",t("jcBad"));
+ const ev=numV(D.every);if(!(numOk(D.every)&&ev>0))return errSet("jcErr",t("jcEvBad"));
+ if(D.unit!=="m"&&!jcHasM(v))return errSet("jcErr",t("jcNoMeter"));
+ const N=jcNegs(D);if(N.length&&!(u.admin&&D.over)){render();return errSet("jcErr",t("jcNeg")+": "+jcNegTxt(N)+(u.admin?"":" "+t("jcNegAdm")))}
+ const ts=Date.now(),id="j"+ts,sid="s"+ts,at=new Date(ts).toISOString(),due=jcDue(Object.assign({},D,{every:ev}),v),meter=jcHasM(v)?+v.reading:"";
+ const parts=D.parts.map(l=>{const p=stPart(l.pid)||{};return {pid:String(l.pid),pn:p.pn||"",name:p.name||"",unit:p.unit||"",qty:+l.qty}});
+ const rec={id:id,no:"JC-"+D.date.replace(/-/g,"").slice(2)+"-"+String(ts).slice(-4),fleet:String(v.fleet),name:v.name||"",date:D.date,meter:meter,mu:svDefUnit(v),work:D.work,by:D.by,parts:parts,unit:D.unit,every:ev,due:due,sid:sid,user:u.name,at:at};
+ if(N.length)rec.override={by:u.name,at:at,lines:N};
+ if(put("jc",id,rec)===false)return;
+ put("s",sid,{id:sid,fleet:String(v.fleet),unit:D.unit,due:due,every:ev,done:true,meter:meter,mu:svDefUnit(v),note:D.work.slice(0,160),by:D.by,day:D.date,job:id,at:at});
+ jcD=null;jcMode="list";toast(t("jcOk"));render()}
+/* A4 job card: same layout + company green as the approved a4-green Service report (.svA4 classes) */
+function jcPrintHTML(j,u){const site=svSite(),P=j.parts||[],tot=stR(P.reduce((a,l)=>a+(+l.qty||0),0)),veh=svVeh().find(x=>String(x.fleet)===String(j.fleet))||{};
+ return `<div id="jcPrint" class="svA4"><div class="hd"><div class="l"><img src="icons/icon-192.png?v=7" alt=""><div><div class="co">${esc(C.NAME)}</div><div class="co2">${esc(t("jcT").replace("📋 ",""))}</div></div></div>
+ <div class="r"><div class="title">${esc(t("jcA4T"))}</div><table class="meta"><tr><td class="k">${esc(t("jcNo"))}</td><td id="jcA4No">${esc(j.no||j.id)}</td></tr><tr><td class="k">${esc(t("rsDate"))}</td><td>${esc(svDt(j.date))}</td></tr><tr><td class="k">${esc(t("rsSite"))}</td><td>${esc(site||"—")}</td></tr></table></div></div>
+ <h2>${esc(t("jcSec1"))}</h2><table class="t" id="jcA4V"><thead><tr><th>${esc(t("rsUnit"))}</th><th>${esc(t("rsDesc"))}</th><th class="n">${esc(t("rsMeterAt"))}</th><th>${esc(t("rsBasis"))}</th><th class="n">${esc(t("jcNextAt"))}</th></tr></thead><tbody><tr><td class="id">${esc(j.fleet)}</td><td>${esc(j.name||veh.name||"")}</td><td class="n">${esc(j.meter===""||j.meter==null?"—":svNum(j.meter)+" "+svU(j.mu))}</td><td>${esc((j.unit==="m"?t("rsMon"):j.unit==="h"?t("rsHrs"):"km")+(j.every?" / "+svNum(j.every):""))}</td><td class="n">${esc(jcDueTxt(j.unit,j.due))}</td></tr></tbody></table>
+ <h2>${esc(t("jcSec2"))}</h2><div class="notes" id="jcA4W">${esc(j.work)}</div><div class="note">${esc(t("rsDoneBy"))}: <b>${esc(j.by)}</b></div>
+ <h2>${esc(t("jcSec3"))}</h2><table class="t" id="jcA4P"><thead><tr><th>${esc(t("stPn"))}</th><th>${esc(t("stName"))}</th><th>${esc(t("rsUnit"))}</th><th class="n">${esc(t("jcQty"))}</th></tr></thead><tbody>${P.map(l=>`<tr><td class="id">${esc(l.pn)}</td><td>${esc(l.name)}</td><td>${esc(l.unit||"")}</td><td class="n">${esc(svNum(l.qty))}</td></tr>`).join("")||`<tr><td colspan="4">${esc(t("jcNoP"))}</td></tr>`}</tbody><tfoot><tr><td colspan="3">${esc(t("jcTotP"))}</td><td class="n">${esc(svNum(tot))}</td></tr></tfoot></table>
+ ${j.override?`<div class="note s-r">⚠️ ${esc(t("jcOverN"))} · ${esc(j.override.by||"")}</div>`:""}
+ <h2>${esc(t("jcSec4"))}</h2><table class="sign"><tr><th>${esc(t("rsPrep"))}</th><th>${esc(t("rsChk"))}</th><th>${esc(t("rsAppr"))}</th></tr>${["rsName","rsSig","rsDate"].map(k=>`<tr>${[0,1,2].map(()=>`<td><span>${esc(t(k))}</span></td>`).join("")}</tr>`).join("")}</table>
+ <div class="ft"><span>${esc(C.NAME)} v${C.VER} · ${esc(t("jcT").replace("📋 ",""))}</span><span class="pg">${esc(t("rsPage"))} 1 ${esc(t("rsOf"))} 1</span><span>${esc(t("rsPrinted"))} ${esc(svStamp())} ${esc(t("rsByW"))} ${esc((u||me()||{}).name||"")}</span></div></div>`}
+function jcPrep(id){const j=all("jc").find(x=>String(x.id)===String(id));if(!j)return false;const u=me()||{};let o=$("jcPrint");if(!o){o=document.createElement("div");o.id="jcPrint";document.body.appendChild(o)}o.outerHTML=jcPrintHTML(j,u);
+ let st=$("svPgCss");if(!st){st=document.createElement("style");st.id="svPgCss";document.head.appendChild(st)}
+ const q=x=>'"'+String(x).replace(/["\\]/g,"\\$&")+'"';const mb="font-size:7.5pt;color:#6b7280;font-family:Carlito,Calibri,'Noto Sans',Arial,sans-serif;border-top:.5pt solid #1B7F3B;vertical-align:top;padding-top:1.5mm;margin-bottom:6mm";
+ st.textContent=`@page{size:A4;margin:11mm 15mm 16mm 15mm;@bottom-left{content:${q(C.NAME+" v"+C.VER+" · "+t("jcT").replace("📋 ","")+" "+(j.no||""))};text-align:left;${mb}}@bottom-center{content:${q(t("rsPage")+" ")} counter(page) ${q(" "+t("rsOf")+" ")} counter(pages);text-align:center;${mb}}@bottom-right{content:${q(t("rsPrinted")+" "+svStamp()+" "+t("rsByW")+" "+(u.name||""))};text-align:right;${mb}}}`;return true}
+function jcPrint(id){if(!jcPrep(id))return;document.body.classList.add("jcPrinting");const done=()=>{document.body.classList.remove("jcPrinting");window.removeEventListener("afterprint",done)};window.addEventListener("afterprint",done);window.print();setTimeout(done,1500)}
+const jcDMY=d=>/^\d{4}-\d\d-\d\d/.test(String(d||""))?String(d).slice(0,10).split("-").reverse().join("/"):"—";
+function bindJob(u){const on=(id,f)=>{const e=$(id);if(e)e.onclick=f};const v=jcVehNow();
+ on("jcNewB",()=>{if(v){jcStart(u,v);jcMode="new";render()}});on("jcListB",()=>{jcMode="list";render()});
+ on("jcBack",()=>{jcD=null;jcMode=jcMode==="new"&&jcJobs(svSel).length?"list":"";render()});
+ on("jcAddP",()=>{jcGrab();const pid=$("jcPart").value,qs=$("jcQty").value;if(!pid||!numOk(qs)||!(numV(qs)>0))return errSet("jcErr",t("jcBadQ"));jcD.parts.push({pid:pid,qty:numV(qs)});render()});
+ document.querySelectorAll(".jcRm").forEach(b=>b.onclick=()=>{jcGrab();jcD.parts.splice(+b.dataset.i,1);render()});
+ const ev=$("jcEvery"),dt=$("jcDate");if(dt){const tx=()=>{const e=$("jcDateTx");if(e)e.textContent="📅 "+jcDMY(dt.value)};dt.addEventListener("input",tx);dt.addEventListener("change",tx);dt.addEventListener("click",()=>{try{dt.showPicker()}catch(e){}})}const pv=()=>{jcGrab();const p=$("jcDueP");if(p&&v)p.innerHTML=`${esc(t("jcRestart"))}: <b>${esc(jcDueTxt(jcD.unit,jcDue(jcD,v)))}</b>`};if(ev)ev.oninput=pv;if(dt)dt.onchange=pv;
+ on("jcSave",()=>jcSaveFn(u));
+ document.querySelectorAll("[data-jp]").forEach(b=>b.onclick=()=>jcPrint(b.dataset.jp))}
+Object.assign(window.TMC,{C:C,stStock:stStock,stOrder:stOrder,stOrdXlsx:stOrdXlsx,jcPrint:jcPrint,jcPrep:jcPrep,jcPrintHTML:jcPrintHTML,stMode:()=>stMode,jcMode:()=>jcMode});
+(()=>{const st=document.createElement("style");st.textContent=`.stBig{display:block;width:100%;min-height:72px;font-size:22px;font-weight:800;margin:8px 0}.stGreen{background:#1B7F3B!important;color:#fff!important;border-color:#1B7F3B!important}.stRed{background:#dc2626!important;color:#fff!important;border-color:#991b1b!important}
+.stPFix{display:block;width:100%;margin:8px 0 0}.jcDW{position:relative}.jcDTx{font-size:22px;min-height:60px;display:flex;align-items:center;border:1px solid #cbd5e1;border-radius:10px;padding:10px;margin:6px 0;background:#fff;color:#0f172a;font-weight:700;letter-spacing:.5px}.jcDW input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}.stIt{background:#fff;border-radius:14px;box-shadow:0 1px 4px rgba(0,0,0,.08);border-left:6px solid #1B7F3B;padding:12px 14px;margin:10px 0}.stIt.low{border-left-color:#dc2626;background:#fef2f2}.stIt .top{display:flex;justify-content:space-between;align-items:center;gap:6px}.stIt .pn{font-size:21px;font-weight:800}.stIt .pill{border-radius:999px;background:#dc2626;color:#fff;font-weight:800;font-size:13px;padding:4px 10px;white-space:nowrap}.stIt .nm{font-size:18px;color:#334155;margin:2px 0}.stIt .q{font-size:18px}.stIt .stQn{font-size:26px}.stIt.low .stQn{color:#b91c1c}.stIt .stFixB{min-height:56px;margin-top:8px}
+.stRedH{color:#fff;background:#dc2626;border-radius:12px;padding:12px 14px;font-size:21px}.stTbl{width:100%;border-collapse:collapse;font-size:16px}.stTbl th{background:#dc2626;color:#fff;text-align:start;padding:8px 6px}.stTbl td{padding:10px 6px;border-bottom:1px solid #fecaca;color:#7f1d1d}.stTbl tbody tr:nth-child(even) td{background:#fef2f2}.stTbl .n{text-align:end;white-space:nowrap}
+.scIt,.jcIt{background:#fff;border-left:6px solid #1B7F3B;border-radius:14px;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:12px 14px;margin:10px 0}.scIt .r1,.jcIt .r1{display:flex;justify-content:space-between;gap:8px;font-weight:800;font-size:18px}.scIt .r2,.jcIt .r2{font-size:17px;margin-top:4px}.scIt .r3,.jcIt .r3{font-size:17px;margin-top:4px;color:#334155}.jcIt .r4{font-size:16px;margin-top:6px;color:#334155}.jcIt .jcPrB{min-height:56px;margin-top:8px}.jcOvN{color:#b91c1c;font-weight:800;margin-top:6px}
+.jcRow{font-size:19px;margin:6px 0}.jcRow .k{display:block;font-size:14px;color:#475569}.jcP{display:grid;grid-template-columns:1fr auto auto;gap:4px 8px;align-items:center;background:#f8fafc;border:1px solid #cbd5e1;border-radius:12px;padding:8px 10px;margin:6px 0;font-size:17px}.jcP .hint{grid-column:1/3}.jcP .jcRm{grid-row:1/3;grid-column:3;min-height:48px;min-width:48px;margin:0}.jcP.neg{background:#fef2f2;border-color:#dc2626;color:#991b1b}
+.jcAdd{display:grid;grid-template-columns:1fr 2fr;gap:8px;margin-top:8px}.jcAdd button{margin:0;min-height:60px;font-weight:800}.jcNegBox{background:#dc2626;color:#fff;font-weight:800;border-radius:12px;padding:12px 14px;margin:10px 0;font-size:17px}.jcOverL{min-height:64px;font-size:18px;border:2px solid #dc2626}.jcBtns{margin-bottom:6px}
+#jcPrint{display:none}@media print{body.jcPrinting{padding:0!important;background:#fff!important}body.jcPrinting #app,body.jcPrinting #tmcToast,body.jcPrinting .modal{display:none!important}body.jcPrinting #jcPrint{display:block!important}body.jcPrinting .svA4 .ft{display:none!important}body.jcPrinting .svA4 .t tr,body.jcPrinting .svA4 .sign{break-inside:avoid}}`;document.head.appendChild(st)})();
+/* tab buttons: a fresh store list / no open job card when you change tab */
+window.TMC.appBindAll=()=>document.querySelectorAll("[data-tab]").forEach(b=>{const o=b.onclick;b.onclick=()=>{if(b.dataset.tab==="store")stMode="";jcMode="";jcD=null;if(o)o()}});
 /* ==================== APP FEATURES END ==================== */
 function canHTML(u){
   if(u.admin)return `<div class="box"><h2>✅ ${esc(t("can"))}</h2><p><b>${esc(t("canAll"))}</b></p></div>`;
@@ -808,6 +1009,7 @@ function bindMain(u){
   {const hl=$("hLang");if(hl)hl.onchange=()=>{lang=hl.value;L.set("lang",lang);render()}}
   bindCommon();
   document.querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>{tab=b.dataset.tab;render()});
+  if(window.TMC.appBindAll)window.TMC.appBindAll(u);
   /* SERVICE HOOK 2/3 (approved): bind Home list */ if(tab==="home"&&window.TMC.bindHomeExtra)window.TMC.bindHomeExtra(u);
   const on=(id,f)=>{const e=$(id);if(e)e.onclick=f};
   on("hSync",()=>syncNow());on("hShare",shareModal);
@@ -816,6 +1018,7 @@ function bindMain(u){
   on("siteSave",()=>{const v=$("sSite").value.trim();if(v)L.set("site",v);else L.del("site");const m=$("siteMsg");if(m)m.textContent=t("rsSiteOk")});
   on("sOut",logout);on("hOut",logout);on("sWipe",wipe);
   if(tab==="work")bindWork(u);if(tab==="reports")bindRep(u);if(tab==="users")bindUsers();
+  if(window.TMC.appViews&&window.TMC.appViews[tab])window.TMC.appViews[tab].bind(u);
   draftBind(u);
 }
 async function logout(){
