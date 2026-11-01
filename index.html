@@ -1178,7 +1178,7 @@ function cmHTML(u){if(!u||!canKind("cm","view",u))return "";const L=cmOpen();if(
 Object.assign(T.en,{cmT:"🔔 Check machine (high fuel use)",cmRate:"⛽ %a L/h (normal %b)",cmDone:"✅ Done",cmSure:"Machine checked? Fuel will show ✅."});
 Object.assign(T.fr,{cmT:"🔔 Vérifier la machine (consommation élevée)",cmRate:"⛽ %a L/h (normal %b)",cmDone:"✅ Fait",cmSure:"Machine vérifiée ? Fuel affichera ✅."});
 Object.assign(T.ar,{cmT:"🔔 فحص الآلة (استهلاك وقود مرتفع)",cmRate:"⛽ %a لتر/س (المعتاد %b)",cmDone:"✅ تم",cmSure:"تم فحص الآلة؟ سيظهر ✅ في تطبيق الوقود."});
-{const st=document.createElement("style");st.textContent=".cmBox{border:3px solid #dc2626}.cmBox h3{color:#b91c1c}.cmRow{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px solid #eee}.cmRow button{min-height:48px;padding:0 14px;font-weight:800;border-radius:10px}";document.head.appendChild(st)}
+{const st=document.createElement("style");st.textContent=".cmBox{border:3px solid #dc2626}.cmBox h3{color:#b91c1c}.cmRow{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px solid #eee}.cmRow>div{flex:1}.cmRow button{flex:none;white-space:nowrap;min-height:48px;padding:0 14px;font-weight:800;border-radius:10px}";document.head.appendChild(st)}
 Object.assign(window.TMC,{cmOpen:cmOpen});
 render();
 if(syncOn())syncNow();else if(sUrl())api({action:"status",name:"-"}).catch(()=>{});  // probe so "Not connected" shows on a fresh phone too
