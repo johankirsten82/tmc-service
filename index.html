@@ -23,7 +23,7 @@
  "APP_ID": "tmcservice",
  "NAME": "TMC Service",
  "SHORT": "TMC Service",
- "VER": 11,
+ "VER": 12,
  "COLOR": "#1d4ed8",
  "COLOR_DARK": "#1e3a8a",
  "REPORT_COLOR": "#1B7F3B",
@@ -129,8 +129,8 @@
 }/*END*/;</script>
 <title>TMC Service</title>
 <link rel="manifest" href="manifest.json">
-<link rel="icon" href="icons/favicon-32.png?v=11">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=11">
+<link rel="icon" href="icons/favicon-32.png?v=12">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=12">
 <meta name="theme-color" content="#1d4ed8">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <style>
@@ -407,7 +407,7 @@ function clearFail(k){const F=L.j("pinFail",{});delete F[k];L.sj("pinFail",F)}
 
 /* ---------------- Screens ---------------- */
 let tab="home",flow=null; // flow = sign-in sub-screen
-function card(inner){return `<div class="full"><div class="signin"><div class="card"><img class="logo" src="icons/icon-192.png?v=11" alt="">${inner}${insHTML()}</div><div id="ncW" class="bar ncW ncBox"></div></div></div>`}
+function card(inner){return `<div class="full"><div class="signin"><div class="card"><img class="logo" src="icons/icon-192.png?v=12" alt="">${inner}${insHTML()}</div><div id="ncW" class="bar ncW ncBox"></div></div></div>`}
 function langBtns(){return `<div class="langs"><select id="langSel" aria-label="Language">${["en","fr","ar"].map(l=>`<option value="${l}"${l===lang?" selected":""}>🌐 ${l==="en"?"English":l==="fr"?"Français":"العربية"}</option>`).join("")}</select></div>`}
 function pinInput(id,ph){return `<div class="pw"><input id="${id}" name="${C.APP_ID}-${id}-${Math.random().toString(36).slice(2,7)}" class="msk" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-form-type="other" placeholder="${esc(ph)}"><button type="button" class="eye" data-eye="${id}">👁</button></div>`}
 function render(){
@@ -416,7 +416,7 @@ function render(){
   if(!u){A.innerHTML=signinHTML();bindSignin();return}
   flow=null;
   if(tab==="users"&&!u.admin)tab="home";if(tab==="work"&&!workOk(u))tab="home";if(tab==="reports"&&!(repOk(u)&&REPORTS.length))tab="home";if(window.TMC.appViews&&window.TMC.appViews[tab]&&!tabsOf(u).some(x=>x[0]===tab))tab="home";
-  A.innerHTML=`<header id="hBand"><img src="icons/icon-192.png?v=11" alt=""><div class="t">${esc(C.SHORT)}</div><span class="hS" id="hS"><span id="sDot" class="dot"></span><span id="sTime" class="sTime"></span></span><select id="hLang" class="hLang" aria-label="Language">${["en","fr","ar"].map(l=>`<option value="${l}"${l===lang?" selected":""}>${l.toUpperCase()}</option>`).join("")}</select></header>
+  A.innerHTML=`<header id="hBand"><img src="icons/icon-192.png?v=12" alt=""><div class="t">${esc(C.SHORT)}</div><span class="hS" id="hS"><span id="sDot" class="dot"></span><span id="sTime" class="sTime"></span></span><select id="hLang" class="hLang" aria-label="Language">${["en","fr","ar"].map(l=>`<option value="${l}"${l===lang?" selected":""}>${l.toUpperCase()}</option>`).join("")}</select></header>
   <main><div id="ncW" class="bar ncW"></div><div id="updW" class="bar updW"></div><div id="pendW" class="bar pendW"></div><div id="view">${viewHTML(u)}</div></main>
   <nav class="tabs">${tabsOf(u).map(x=>navBtn(...x)).join("")}</nav>`;
   bindMain(u);paintSync();paintUpd();
@@ -439,7 +439,7 @@ function signinHTML(){
   if(f.s==="gone")return card(`<h2 id="goneT">❌ ${esc(t("goneT"))}</h2><p class="hint" style="font-size:18px">${esc(t("goneH"))}</p><button type="button" id="fAgain" style="min-height:60px">${esc(t("again"))}</button><button type="button" class="sec" id="fOther" style="min-height:60px">${esc(t("other"))}</button>`);
   if(f.s==="rej")return card(`<h2>❌ ${esc(t("rejT"))}</h2><p class="hint">${esc(t("rejH"))}</p><button type="button" class="sec" id="fOther">${esc(t("other"))}</button>`);
   if(f.s==="blk")return card(`<h2>⛔ ${esc(t("blkT"))}</h2><p class="hint">${esc(t("blkH"))}</p><button type="button" class="sec" id="fOther">${esc(t("other"))}</button>`);
-  return `<div class="full tmcS" style="--tmcS-c:${esc(C.COLOR)};--tmcS-cd:${esc(C.COLOR_DARK)}"><div class="signin"><div class="card"><img class="tmcS-logo logo" src="icons/icon-192.png?v=11" width="84" height="84" alt=""><h2 class="tmcS-t">${esc(C.NAME)}</h2><select id="langSel" class="tmcS-lang" aria-label="Language">${["en","fr","ar"].map(l=>`<option value="${l}"${l===lang?" selected":""}>🌐 ${l==="en"?"English":l==="fr"?"Français":"العربية"}</option>`).join("")}</select><input id="fName" class="tmcS-name" name="${C.APP_ID}-who" type="text" autocomplete="off" autocapitalize="words" spellcheck="true" autocorrect="on" data-lpignore="true" data-1p-ignore="true" placeholder="${esc(t("nameH"))}" value="${esc(L.get("lastName")||"")}"><p class="err tmcS-err" id="fErr"></p><button type="button" id="fName2" class="tmcS-go">${esc(t("go"))}</button>${insHTML()}</div><div id="ncW" class="bar ncW ncBox" role="alert"></div></div></div>`;
+  return `<div class="full tmcS" style="--tmcS-c:${esc(C.COLOR)};--tmcS-cd:${esc(C.COLOR_DARK)}"><div class="signin"><div class="card"><img class="tmcS-logo logo" src="icons/icon-192.png?v=12" width="84" height="84" alt=""><h2 class="tmcS-t">${esc(C.NAME)}</h2><select id="langSel" class="tmcS-lang" aria-label="Language">${["en","fr","ar"].map(l=>`<option value="${l}"${l===lang?" selected":""}>🌐 ${l==="en"?"English":l==="fr"?"Français":"العربية"}</option>`).join("")}</select><input id="fName" class="tmcS-name" name="${C.APP_ID}-who" type="text" autocomplete="off" autocapitalize="words" spellcheck="true" autocorrect="on" data-lpignore="true" data-1p-ignore="true" placeholder="${esc(t("nameH"))}" value="${esc(L.get("lastName")||"")}"><p class="err tmcS-err" id="fErr"></p><button type="button" id="fName2" class="tmcS-go">${esc(t("go"))}</button>${insHTML()}</div><div id="ncW" class="bar ncW ncBox" role="alert"></div></div></div>`;
 }
 function err(m){const e=$("fErr");if(e){e.textContent=m;e.style.display="block"}}
 function bindCommon(){
@@ -535,7 +535,7 @@ function viewHTML(u){
   if(tab==="reports")return repScreenHTML(u);
   /* SERVICE HOOK 4 (v7): app screens (Parts store) */if(window.TMC.appViews&&window.TMC.appViews[tab])return window.TMC.appViews[tab].html(u);
   const np=users().filter(x=>x.status==="pending").length;
-  return `<div class="box hhero" id="hHero"><img src="icons/icon-192.png?v=11" alt="" width="64" height="64"><div><h2>${esc(C.NAME)}</h2><div id="hDate">${esc(new Date().toLocaleDateString(lang==="ar"?"ar-TD":lang==="fr"?"fr-FR":"en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric"}))}</div><div class="hhi" id="hHello">👋 ${esc(t("hello"))}, ${esc(u.name)}</div></div></div><button type="button" class="sec loBand" id="hOut">${esc(t("logout"))}</button>
+  return `<div class="box hhero" id="hHero"><img src="icons/icon-192.png?v=12" alt="" width="64" height="64"><div><h2>${esc(C.NAME)}</h2><div id="hDate">${esc(new Date().toLocaleDateString(lang==="ar"?"ar-TD":lang==="fr"?"fr-FR":"en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric"}))}</div><div class="hhi" id="hHello">👋 ${esc(t("hello"))}, ${esc(u.name)}</div></div></div><button type="button" class="sec loBand" id="hOut">${esc(t("logout"))}</button>
   <div class="tiles">${tabsOf(u).filter(x=>x[0]!=="home").map(([k,ic,n])=>`<button type="button" class="tile" data-tab="${k}"${k==="can"?' id="hCan"':""}><b>${ic}</b>${esc(t(k))}${n?` (${n})`:""}</button>`).join("")}</div>${/* SERVICE HOOK 1/3 (approved): app list on Home */""}${window.TMC.homeExtra?window.TMC.homeExtra(u):""}`;
 }
 /* ---- PHOTO: every photo field = 2 big buttons (camera OR phone gallery), same handler ----
@@ -732,7 +732,7 @@ const svLastC=s=>!s.p?(s.v.reading==null||s.v.reading===""?"—":svNum(s.v.readi
 const svDueC=s=>!s.p?"—":s.p.unit==="m"?svDt(s.p.due):svNum(s.p.due)+" "+svU(s.p.unit);
 const svRemC=s=>{if(s.g===3)return s.l.txt;const n=s.l.n,u=s.p.unit==="m"?" "+t("rsDays"):" "+svU(s.p.unit);return (n<0?"−":"")+svNum(Math.abs(n))+u};
 function svPrintHTML(u){const S=svStats(),cnt=[0,0,0,0];S.forEach(s=>cnt[s.g]++);const [f,to]=svRange(),D=svDone(f,to),site=svSite();
- return `<div id="svPrint" class="svA4"><div class="hd"><div class="l"><img src="icons/icon-192.png?v=11" alt=""><div><div class="co">${esc(C.NAME)}</div><div class="co2">${esc(t("rsTitle"))}</div></div></div>
+ return `<div id="svPrint" class="svA4"><div class="hd"><div class="l"><img src="icons/icon-192.png?v=12" alt=""><div><div class="co">${esc(C.NAME)}</div><div class="co2">${esc(t("rsTitle"))}</div></div></div>
  <div class="r"><div class="title">${esc(t("rsA4T"))}</div><table class="meta"><tr><td class="k">${esc(t("rsPer"))}</td><td>${esc(svDt(f))} – ${esc(svDt(to))}</td></tr><tr><td class="k">${esc(t("rsRDate"))}</td><td>${esc(svDt(svToday()))}</td></tr><tr><td class="k">${esc(t("rsSite"))}</td><td id="svA4Site">${esc(site||"—")}</td></tr></table></div></div>
  <h2>${esc(t("rsSum"))}</h2><div class="sum"><div><span class="mk m-r"></span>${esc(t("rsOver"))}&nbsp;<b>${cnt[0]}</b></div><div><span class="mk m-a"></span>${esc(t("rsSoon"))}&nbsp;<b>${cnt[1]}</b></div><div><span class="mk m-g"></span>${esc(t("rsOk"))}&nbsp;<b>${cnt[2]}</b></div><div>${esc(t("rsTotU"))}&nbsp;<b>${S.length}</b></div></div>
  <h2>${esc(t("rsSec2"))}</h2><table class="t" id="svA4St"><thead><tr><th>${esc(t("rsUnit"))}</th><th>${esc(t("rsDesc"))}</th><th>${esc(t("rsBasis"))}</th><th class="n">${esc(t("rsLastM"))}</th><th class="n">${esc(t("rsDueAtC"))}</th><th class="n">${esc(t("rsRem"))}</th><th>${esc(t("rsStat"))}</th></tr></thead><tbody>
@@ -959,7 +959,7 @@ function jcSaveFn(u){jcGrab();const D=jcD,v=jcVehNow();if(!D||!v)return;
  jcD=null;jcMode="list";toast(t("jcOk"));render()}
 /* A4 job card: same layout + company green as the approved a4-green Service report (.svA4 classes) */
 function jcPrintHTML(j,u){const site=svSite(),P=j.parts||[],tot=stR(P.reduce((a,l)=>a+(+l.qty||0),0)),veh=svVeh().find(x=>String(x.fleet)===String(j.fleet))||{};
- return `<div id="jcPrint" class="svA4"><div class="hd"><div class="l"><img src="icons/icon-192.png?v=11" alt=""><div><div class="co">${esc(C.NAME)}</div><div class="co2">${esc(t("jcT").replace("📋 ",""))}</div></div></div>
+ return `<div id="jcPrint" class="svA4"><div class="hd"><div class="l"><img src="icons/icon-192.png?v=12" alt=""><div><div class="co">${esc(C.NAME)}</div><div class="co2">${esc(t("jcT").replace("📋 ",""))}</div></div></div>
  <div class="r"><div class="title">${esc(t("jcA4T"))}</div><table class="meta"><tr><td class="k">${esc(t("jcNo"))}</td><td id="jcA4No">${esc(j.no||j.id)}</td></tr><tr><td class="k">${esc(t("rsDate"))}</td><td>${esc(svDt(j.date))}</td></tr><tr><td class="k">${esc(t("rsSite"))}</td><td>${esc(site||"—")}</td></tr></table></div></div>
  <h2>${esc(t("jcSec1"))}</h2><table class="t" id="jcA4V"><thead><tr><th>${esc(t("rsUnit"))}</th><th>${esc(t("rsDesc"))}</th><th class="n">${esc(t("rsMeterAt"))}</th><th>${esc(t("rsBasis"))}</th><th class="n">${esc(t("jcNextAt"))}</th></tr></thead><tbody><tr><td class="id">${esc(j.fleet)}</td><td>${esc(j.name||veh.name||"")}</td><td class="n">${esc(j.meter===""||j.meter==null?"—":svNum(j.meter)+" "+svU(j.mu))}</td><td>${esc((j.unit==="m"?t("rsMon"):j.unit==="h"?t("rsHrs"):"km")+(j.every?" / "+svNum(j.every):""))}</td><td class="n">${esc(jcDueTxt(j.unit,j.due))}</td></tr></tbody></table>
  <h2>${esc(t("jcSec2"))}</h2><div class="notes" id="jcA4W">${esc(j.work)}</div><div class="note">${esc(t("rsDoneBy"))}: <b>${esc(j.by)}</b></div>
@@ -1167,6 +1167,19 @@ function shareModal(){
   $("shC").onclick=()=>{try{navigator.clipboard.writeText(url).then(()=>{$("shC").textContent=t("copied")})}catch(e){}};
 }
 
+/* v12: "Check machine (high fuel use)" calls from TMC Fuel. Only the server writes cm:<id> (fill-up id, vehicle, date, L/h, normal);
+   a phone marks it done by ADDING cd:<id> (add-only); the server then tells Fuel "done" (fill-up id only). No Fuel users/PINs/data here. */
+Object.assign(C.PERM_KINDS=C.PERM_KINDS||{},{cm:{view:"view",add:"admin"},cd:{view:"view",add:"add"}});
+function cmOpen(){const dn={};all("cd").forEach(d=>dn[d.id]=1);return all("cm").filter(c=>c&&!dn[c.id]).sort((a,b)=>String(a.date)<String(b.date)?-1:String(a.date)>String(b.date)?1:0)}
+function cmHTML(u){if(!u||!canKind("cm","view",u))return "";const L=cmOpen();if(!L.length)return "";const ok=canKind("cd","add",u);
+  return `<div class="box cmBox" id="cmBox"><h3>${esc(t("cmT"))} (${L.length})</h3>${L.map(c=>`<div class="cmRow" data-cm="${esc(c.id)}"><div><b>${esc(c.name||c.vid)}</b> · ${esc(c.date)}<br>${esc(t("cmRate").replace("%a",c.rate).replace("%b",c.normal))}</div>${ok?`<button type="button" class="stGreen" data-cmdone="${esc(c.id)}">${esc(t("cmDone"))}</button>`:""}</div>`).join("")}</div>`}
+{const h0=window.TMC.homeExtra;window.TMC.homeExtra=u=>cmHTML(u)+(h0?h0(u):"")}
+{const b0=window.TMC.appBindAll;window.TMC.appBindAll=u=>{if(b0)b0(u);document.querySelectorAll("[data-cmdone]").forEach(b=>b.onclick=()=>{const id=b.dataset.cmdone,m=me();if(!confirm(t("cmSure")))return;if(put("cd",id,{id:id,by:m?m.name:"",at:new Date().toISOString()})!==false){render();syncSoon(300)}})}}
+Object.assign(T.en,{cmT:"🔔 Check machine (high fuel use)",cmRate:"⛽ %a L/h (normal %b)",cmDone:"✅ Done",cmSure:"Machine checked? Fuel will show ✅."});
+Object.assign(T.fr,{cmT:"🔔 Vérifier la machine (consommation élevée)",cmRate:"⛽ %a L/h (normal %b)",cmDone:"✅ Fait",cmSure:"Machine vérifiée ? Fuel affichera ✅."});
+Object.assign(T.ar,{cmT:"🔔 فحص الآلة (استهلاك وقود مرتفع)",cmRate:"⛽ %a لتر/س (المعتاد %b)",cmDone:"✅ تم",cmSure:"تم فحص الآلة؟ سيظهر ✅ في تطبيق الوقود."});
+{const st=document.createElement("style");st.textContent=".cmBox{border:3px solid #dc2626}.cmBox h3{color:#b91c1c}.cmRow{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px solid #eee}.cmRow button{min-height:48px;padding:0 14px;font-weight:800;border-radius:10px}";document.head.appendChild(st)}
+Object.assign(window.TMC,{cmOpen:cmOpen});
 render();
 if(syncOn())syncNow();else if(sUrl())api({action:"status",name:"-"}).catch(()=>{});  // probe so "Not connected" shows on a fresh phone too
 })();
