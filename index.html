@@ -23,7 +23,7 @@
  "APP_ID": "tmcservice",
  "NAME": "TMC Service",
  "SHORT": "TMC Service",
- "VER": 12,
+ "VER": 13,
  "COLOR": "#1d4ed8",
  "COLOR_DARK": "#1e3a8a",
  "REPORT_COLOR": "#1B7F3B",
@@ -123,6 +123,15 @@
     "add"
    ],
    "add": "add"
+  },
+  "m": {
+   "view": [
+    "view",
+    "store",
+    "storeEd",
+    "add"
+   ],
+   "add": "add"
   }
  },
  "CACHE_PREFIX": "tmc-service"
@@ -168,7 +177,7 @@ nav.tabs button .ticon{font-size:24px}nav.tabs button.on{color:var(--c);border-t
 .tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}
 .tile{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:150px;margin:0;padding:12px 6px;background:#fff;color:#0f172a;border:2px solid #bbf7d0;border-radius:16px;box-shadow:0 2px 8px #0000000f;font-size:17px;font-weight:700}
 .tile.sec{background:#fff}.tile:active{background:#f0fdf4}.tile b{font-size:40px;line-height:1}
-.phPick{display:flex;gap:8px}.phPick label{flex:1;min-height:64px;display:flex;align-items:center;justify-content:center;text-align:center;background:var(--c);color:#fff;border-radius:10px;font-weight:700;font-size:17px;padding:6px;margin:6px 0;cursor:pointer}.phPick label.alt{background:#fff;color:var(--c);border:2px solid var(--c)}.phPick input{display:none}.phPrev{max-width:100%;border-radius:10px;margin-top:6px}
+.phPick{display:flex;gap:8px}.phPick label{flex:1;min-height:64px;display:flex;align-items:center;justify-content:center;text-align:center;background:var(--c);color:#fff;border-radius:10px;font-weight:700;font-size:17px;padding:6px;margin:6px 0;cursor:pointer}.phPick label.alt{background:#fff;color:var(--c);border:2px solid var(--c)}.phPick input{display:none}.phPrev{max-width:100%;border-radius:10px;margin-top:6px}.phView{display:block;width:100%;min-height:60px;font-size:19px;font-weight:700;margin:6px 0}.phOv{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px;gap:10px}.phOv img{max-width:100%;max-height:80vh;object-fit:contain;background:#fff}.phOv .phMsg{color:#fff;font-size:20px;text-align:center}.phOv button{min-height:60px;font-size:20px;width:100%;max-width:420px}
 .rep{width:100%;border-collapse:collapse;font-size:17px;margin:6px 0}.rep th{background:var(--rc);color:#fff;text-align:left;padding:12px 10px}.rep td{padding:12px 10px;border-bottom:1px solid #d1e7d8}.rep tbody tr:nth-child(even) td{background:color-mix(in srgb,var(--rc) 10%,#fff)}.rep tfoot td{background:color-mix(in srgb,var(--rc) 22%,#fff);color:var(--rc);font-weight:800;border-top:3px solid var(--rc)}/* SERVICE HOOK 3/3 (approved): red overdue report rows (also r._red in repTable) */.rep tr.red td{background:#dc2626!important;color:#fff!important}.repH{background:var(--rc);color:#fff;border-radius:10px;padding:12px;font-weight:800;font-size:19px;margin:6px 0}
 nav.tabs .tlab{font-size:13px;line-height:1.1;text-align:center;overflow-wrap:anywhere;max-width:100%}
 .rpBar{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}.rpBar button{margin:0;padding:6px 4px;font-size:16px}.rpBar button.on{background:var(--rc);color:#fff}
@@ -234,7 +243,7 @@ window.TMC={P:P,L:L};
 
 /* ---------------- Texts EN / FR / AR ---------------- */
 const T={en:{
-hello:"Hi",reports:"Reports",rpPick:"Choose a report",rpToday:"Today",rpMonth:"This month",rpDates:"Pick dates",rpFrom:"From",rpTo:"To",rpShow:"Show",rpXls:"📥 Download Excel",rpPrint:"🖨️ Print",rpBack:"⬅ Back",rpNone:"No data for these dates.",rpPeriod:"Period",rpDemo:"Notes per person",rpDate:"Date",rpPerson:"Person",rpNotes:"Notes",rpChars:"Letters",phTake:"📷 Take photo",phPick:"🖼️ Choose from phone",phDemo:"Photo (demo)",rpTot:"Total",rpItem:"Item",rpQty:"Count",name:"Your name",nameH:"Type your name",go:"Continue",needName:"Please type your name.",
+hello:"Hi",reports:"Reports",rpPick:"Choose a report",rpToday:"Today",rpMonth:"This month",rpDates:"Pick dates",rpFrom:"From",rpTo:"To",rpShow:"Show",rpXls:"📥 Download Excel",rpPrint:"🖨️ Print",rpBack:"⬅ Back",rpNone:"No data for these dates.",rpPeriod:"Period",rpDemo:"Notes per person",rpDate:"Date",rpPerson:"Person",rpNotes:"Notes",rpChars:"Letters",phTake:"📷 Take photo",phPick:"🖼️ Upload photo",phDemo:"Photo (demo)",rpTot:"Total",rpItem:"Item",rpQty:"Count",name:"Your name",nameH:"Type your name",go:"Continue",needName:"Please type your name.",
 pinT:"Enter your PIN",pin:"PIN",pinWrong:"Wrong PIN. Try again.",pinLock:"Too many wrong PINs. Try again in %m min.",other:"Use a different name",
 setT:"Choose a PIN",setH:"4 to 6 numbers. You will use it every time.",pin2:"Type the PIN again",pinBad:"Use 4 to 6 numbers.",pinDiff:"The two PINs are not the same.",save:"Save",
 setupT:"First Admin setup",setupH:"You are the first user. Choose the Admin PIN.",
@@ -254,7 +263,7 @@ logoutPend:"⚠️ %n change(s) are not sent yet. They stay on this phone and wi
 wipe:"🗑️ Clear this app on this phone",wipeQ:"Delete this app's data on this phone? Other apps are not touched.",wipePend:"⚠️ %n change(s) are NOT sent and will be LOST. Delete anyway?",
 draft:"Your unsaved text was kept.",ncT:"🔴 Not connected",ncH:"The app cannot reach the Sheet. Your work is kept on this phone and sent when it connects.",ncOff:"Sync link missing in this app. Tell the Admin."},
 fr:{
-hello:"Bonjour",reports:"Rapports",rpPick:"Choisir un rapport",rpToday:"Aujourd'hui",rpMonth:"Ce mois",rpDates:"Choisir les dates",rpFrom:"Du",rpTo:"Au",rpShow:"Afficher",rpXls:"📥 Télécharger Excel",rpPrint:"🖨️ Imprimer",rpBack:"⬅ Retour",rpNone:"Aucune donnée pour ces dates.",rpPeriod:"Période",rpDemo:"Notes par personne",rpDate:"Date",rpPerson:"Personne",rpNotes:"Notes",rpChars:"Lettres",phTake:"📷 Prendre une photo",phPick:"🖼️ Choisir dans le téléphone",phDemo:"Photo (démo)",rpTot:"Total",rpItem:"Élément",rpQty:"Nombre",name:"Votre nom",nameH:"Écrivez votre nom",go:"Continuer",needName:"Écrivez votre nom.",
+hello:"Bonjour",reports:"Rapports",rpPick:"Choisir un rapport",rpToday:"Aujourd'hui",rpMonth:"Ce mois",rpDates:"Choisir les dates",rpFrom:"Du",rpTo:"Au",rpShow:"Afficher",rpXls:"📥 Télécharger Excel",rpPrint:"🖨️ Imprimer",rpBack:"⬅ Retour",rpNone:"Aucune donnée pour ces dates.",rpPeriod:"Période",rpDemo:"Notes par personne",rpDate:"Date",rpPerson:"Personne",rpNotes:"Notes",rpChars:"Lettres",phTake:"📷 Prendre une photo",phPick:"🖼️ Téléverser une photo",phDemo:"Photo (démo)",rpTot:"Total",rpItem:"Élément",rpQty:"Nombre",name:"Votre nom",nameH:"Écrivez votre nom",go:"Continuer",needName:"Écrivez votre nom.",
 pinT:"Entrez votre PIN",pin:"PIN",pinWrong:"PIN incorrect. Réessayez.",pinLock:"Trop de PIN erronés. Réessayez dans %m min.",other:"Utiliser un autre nom",
 setT:"Choisissez un PIN",setH:"4 à 6 chiffres. Vous l'utiliserez à chaque fois.",pin2:"Retapez le PIN",pinBad:"Utilisez 4 à 6 chiffres.",pinDiff:"Les deux PIN ne sont pas pareils.",save:"Enregistrer",
 setupT:"Configuration de l'Admin",setupH:"Vous êtes le premier utilisateur. Choisissez le PIN Admin.",
@@ -274,7 +283,7 @@ logoutPend:"⚠️ %n modification(s) pas encore envoyée(s). Elles restent sur 
 wipe:"🗑️ Effacer cette app sur ce téléphone",wipeQ:"Effacer les données de cette app sur ce téléphone ? Les autres apps ne sont pas touchées.",wipePend:"⚠️ %n modification(s) NON envoyée(s) seront PERDUES. Effacer quand même ?",
 draft:"Votre texte non enregistré a été gardé.",ncT:"🔴 Pas connecté",ncH:"L'app n'arrive pas à joindre la feuille. Votre travail reste sur ce téléphone et sera envoyé à la connexion.",ncOff:"Lien de synchro absent dans cette app. Prévenez l'Admin."},
 ar:{
-hello:"مرحبا",reports:"التقارير",rpPick:"اختر تقريرا",rpToday:"اليوم",rpMonth:"هذا الشهر",rpDates:"اختر التواريخ",rpFrom:"من",rpTo:"إلى",rpShow:"عرض",rpXls:"📥 تنزيل Excel",rpPrint:"🖨️ طباعة",rpBack:"⬅ رجوع",rpNone:"لا توجد بيانات لهذه التواريخ.",rpPeriod:"الفترة",rpDemo:"الملاحظات لكل شخص",rpDate:"التاريخ",rpPerson:"الشخص",rpNotes:"الملاحظات",rpChars:"الحروف",phTake:"📷 التقط صورة",phPick:"🖼️ اختر من الهاتف",phDemo:"صورة (تجربة)",rpTot:"المجموع",rpItem:"البند",rpQty:"العدد",name:"اسمك",nameH:"اكتب اسمك",go:"متابعة",needName:"من فضلك اكتب اسمك.",
+hello:"مرحبا",reports:"التقارير",rpPick:"اختر تقريرا",rpToday:"اليوم",rpMonth:"هذا الشهر",rpDates:"اختر التواريخ",rpFrom:"من",rpTo:"إلى",rpShow:"عرض",rpXls:"📥 تنزيل Excel",rpPrint:"🖨️ طباعة",rpBack:"⬅ رجوع",rpNone:"لا توجد بيانات لهذه التواريخ.",rpPeriod:"الفترة",rpDemo:"الملاحظات لكل شخص",rpDate:"التاريخ",rpPerson:"الشخص",rpNotes:"الملاحظات",rpChars:"الحروف",phTake:"📷 التقط صورة",phPick:"🖼️ رفع صورة",phDemo:"صورة (تجربة)",rpTot:"المجموع",rpItem:"البند",rpQty:"العدد",name:"اسمك",nameH:"اكتب اسمك",go:"متابعة",needName:"من فضلك اكتب اسمك.",
 pinT:"أدخل رمز PIN",pin:"PIN",pinWrong:"رمز خاطئ. حاول مرة أخرى.",pinLock:"رموز PIN خاطئة كثيرة. حاول مرة أخرى بعد %m دقيقة.",other:"استخدام اسم آخر",
 setT:"اختر رمز PIN",setH:"من 4 إلى 6 أرقام. ستستخدمه كل مرة.",pin2:"اكتب الرمز مرة أخرى",pinBad:"استخدم من 4 إلى 6 أرقام.",pinDiff:"الرمزان غير متطابقين.",save:"حفظ",
 setupT:"إعداد المسؤول الأول",setupH:"أنت أول مستخدم. اختر رمز المسؤول.",
@@ -407,7 +416,7 @@ function clearFail(k){const F=L.j("pinFail",{});delete F[k];L.sj("pinFail",F)}
 
 /* ---------------- Screens ---------------- */
 let tab="home",flow=null; // flow = sign-in sub-screen
-function card(inner){return `<div class="full"><div class="signin"><div class="card"><img class="logo" src="icons/icon-192.png?v=12" alt="">${inner}${insHTML()}</div><div id="ncW" class="bar ncW ncBox"></div></div></div>`}
+function card(inner){return `<div class="full"><div class="signin"><div class="card"><img class="logo" src="icons/icon-192.png?v=13" alt="">${inner}${insHTML()}</div><div id="ncW" class="bar ncW ncBox"></div></div></div>`}
 function langBtns(){return `<div class="langs"><select id="langSel" aria-label="Language">${["en","fr","ar"].map(l=>`<option value="${l}"${l===lang?" selected":""}>🌐 ${l==="en"?"English":l==="fr"?"Français":"العربية"}</option>`).join("")}</select></div>`}
 function pinInput(id,ph){return `<div class="pw"><input id="${id}" name="${C.APP_ID}-${id}-${Math.random().toString(36).slice(2,7)}" class="msk" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-form-type="other" placeholder="${esc(ph)}"><button type="button" class="eye" data-eye="${id}">👁</button></div>`}
 function render(){
@@ -416,7 +425,7 @@ function render(){
   if(!u){A.innerHTML=signinHTML();bindSignin();return}
   flow=null;
   if(tab==="users"&&!u.admin)tab="home";if(tab==="work"&&!workOk(u))tab="home";if(tab==="reports"&&!(repOk(u)&&REPORTS.length))tab="home";if(window.TMC.appViews&&window.TMC.appViews[tab]&&!tabsOf(u).some(x=>x[0]===tab))tab="home";
-  A.innerHTML=`<header id="hBand"><img src="icons/icon-192.png?v=12" alt=""><div class="t">${esc(C.SHORT)}</div><span class="hS" id="hS"><span id="sDot" class="dot"></span><span id="sTime" class="sTime"></span></span><select id="hLang" class="hLang" aria-label="Language">${["en","fr","ar"].map(l=>`<option value="${l}"${l===lang?" selected":""}>${l.toUpperCase()}</option>`).join("")}</select></header>
+  A.innerHTML=`<header id="hBand"><img src="icons/icon-192.png?v=13" alt=""><div class="t">${esc(C.SHORT)}</div><span class="hS" id="hS"><span id="sDot" class="dot"></span><span id="sTime" class="sTime"></span></span><select id="hLang" class="hLang" aria-label="Language">${["en","fr","ar"].map(l=>`<option value="${l}"${l===lang?" selected":""}>${l.toUpperCase()}</option>`).join("")}</select></header>
   <main><div id="ncW" class="bar ncW"></div><div id="updW" class="bar updW"></div><div id="pendW" class="bar pendW"></div><div id="view">${viewHTML(u)}</div></main>
   <nav class="tabs">${tabsOf(u).map(x=>navBtn(...x)).join("")}</nav>`;
   bindMain(u);paintSync();paintUpd();
@@ -439,7 +448,7 @@ function signinHTML(){
   if(f.s==="gone")return card(`<h2 id="goneT">❌ ${esc(t("goneT"))}</h2><p class="hint" style="font-size:18px">${esc(t("goneH"))}</p><button type="button" id="fAgain" style="min-height:60px">${esc(t("again"))}</button><button type="button" class="sec" id="fOther" style="min-height:60px">${esc(t("other"))}</button>`);
   if(f.s==="rej")return card(`<h2>❌ ${esc(t("rejT"))}</h2><p class="hint">${esc(t("rejH"))}</p><button type="button" class="sec" id="fOther">${esc(t("other"))}</button>`);
   if(f.s==="blk")return card(`<h2>⛔ ${esc(t("blkT"))}</h2><p class="hint">${esc(t("blkH"))}</p><button type="button" class="sec" id="fOther">${esc(t("other"))}</button>`);
-  return `<div class="full tmcS" style="--tmcS-c:${esc(C.COLOR)};--tmcS-cd:${esc(C.COLOR_DARK)}"><div class="signin"><div class="card"><img class="tmcS-logo logo" src="icons/icon-192.png?v=12" width="84" height="84" alt=""><h2 class="tmcS-t">${esc(C.NAME)}</h2><select id="langSel" class="tmcS-lang" aria-label="Language">${["en","fr","ar"].map(l=>`<option value="${l}"${l===lang?" selected":""}>🌐 ${l==="en"?"English":l==="fr"?"Français":"العربية"}</option>`).join("")}</select><input id="fName" class="tmcS-name" name="${C.APP_ID}-who" type="text" autocomplete="off" autocapitalize="words" spellcheck="true" autocorrect="on" data-lpignore="true" data-1p-ignore="true" placeholder="${esc(t("nameH"))}" value="${esc(L.get("lastName")||"")}"><p class="err tmcS-err" id="fErr"></p><button type="button" id="fName2" class="tmcS-go">${esc(t("go"))}</button>${insHTML()}</div><div id="ncW" class="bar ncW ncBox" role="alert"></div></div></div>`;
+  return `<div class="full tmcS" style="--tmcS-c:${esc(C.COLOR)};--tmcS-cd:${esc(C.COLOR_DARK)}"><div class="signin"><div class="card"><img class="tmcS-logo logo" src="icons/icon-192.png?v=13" width="84" height="84" alt=""><h2 class="tmcS-t">${esc(C.NAME)}</h2><select id="langSel" class="tmcS-lang" aria-label="Language">${["en","fr","ar"].map(l=>`<option value="${l}"${l===lang?" selected":""}>🌐 ${l==="en"?"English":l==="fr"?"Français":"العربية"}</option>`).join("")}</select><input id="fName" class="tmcS-name" name="${C.APP_ID}-who" type="text" autocomplete="off" autocapitalize="words" spellcheck="true" autocorrect="on" data-lpignore="true" data-1p-ignore="true" placeholder="${esc(t("nameH"))}" value="${esc(L.get("lastName")||"")}"><p class="err tmcS-err" id="fErr"></p><button type="button" id="fName2" class="tmcS-go">${esc(t("go"))}</button>${insHTML()}</div><div id="ncW" class="bar ncW ncBox" role="alert"></div></div></div>`;
 }
 function err(m){const e=$("fErr");if(e){e.textContent=m;e.style.display="block"}}
 function bindCommon(){
@@ -535,15 +544,63 @@ function viewHTML(u){
   if(tab==="reports")return repScreenHTML(u);
   /* SERVICE HOOK 4 (v7): app screens (Parts store) */if(window.TMC.appViews&&window.TMC.appViews[tab])return window.TMC.appViews[tab].html(u);
   const np=users().filter(x=>x.status==="pending").length;
-  return `<div class="box hhero" id="hHero"><img src="icons/icon-192.png?v=12" alt="" width="64" height="64"><div><h2>${esc(C.NAME)}</h2><div id="hDate">${esc(new Date().toLocaleDateString(lang==="ar"?"ar-TD":lang==="fr"?"fr-FR":"en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric"}))}</div><div class="hhi" id="hHello">👋 ${esc(t("hello"))}, ${esc(u.name)}</div></div></div><button type="button" class="sec loBand" id="hOut">${esc(t("logout"))}</button>
+  return `<div class="box hhero" id="hHero"><img src="icons/icon-192.png?v=13" alt="" width="64" height="64"><div><h2>${esc(C.NAME)}</h2><div id="hDate">${esc(new Date().toLocaleDateString(lang==="ar"?"ar-TD":lang==="fr"?"fr-FR":"en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric"}))}</div><div class="hhi" id="hHello">👋 ${esc(t("hello"))}, ${esc(u.name)}</div></div></div><button type="button" class="sec loBand" id="hOut">${esc(t("logout"))}</button>
   <div class="tiles">${tabsOf(u).filter(x=>x[0]!=="home").map(([k,ic,n])=>`<button type="button" class="tile" data-tab="${k}"${k==="can"?' id="hCan"':""}><b>${ic}</b>${esc(t(k))}${n?` (${n})`:""}</button>`).join("")}</div>${/* SERVICE HOOK 1/3 (approved): app list on Home */""}${window.TMC.homeExtra?window.TMC.homeExtra(u):""}`;
 }
 /* ---- PHOTO: every photo field = 2 big buttons (camera OR phone gallery), same handler ----
-   photoHTML(id) -> HTML; bindPhoto(id, cb) -> cb(dataUrl) after resize/compress (max 1280px, JPEG 0.7). */
+   photoHTML(id) -> HTML; bindPhoto(id, cb) -> cb(dataUrl) after resize/compress (VER 9: max 800px, JPEG 0.5 → ≤ ~100 KB). */
 function photoHTML(id){return `<div class="phPick" id="${id}"><label class="phCam"><input type="file" accept="image/*" capture="environment" data-ph="${id}">${esc(t("phTake"))}</label><label class="alt phGal"><input type="file" accept="image/*" data-ph="${id}">${esc(t("phPick"))}</label></div>`}
 function shrinkPhoto(file,max,q){return new Promise((ok,no)=>{const r=new FileReader();r.onerror=no;r.onload=()=>{const im=new Image();im.onerror=no;im.onload=()=>{const k=Math.min(1,(max||1280)/Math.max(im.width,im.height));const c=document.createElement("canvas");c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext("2d").drawImage(im,0,0,c.width,c.height);ok(c.toDataURL("image/jpeg",q||0.7))};im.src=r.result};r.readAsDataURL(file)})}
-function bindPhoto(id,cb){document.querySelectorAll(`input[data-ph="${id}"]`).forEach(i=>i.onchange=()=>{const f=i.files&&i.files[0];if(!f)return;window.TMC.lastPhotoFrom=i.hasAttribute("capture")?"camera":"phone";shrinkPhoto(f).then(cb).catch(()=>{});i.value=""})}
+function bindPhoto(id,cb){document.querySelectorAll(`input[data-ph="${id}"]`).forEach(i=>i.onchange=()=>{const f=i.files&&i.files[0];if(!f)return;window.TMC.lastPhotoFrom=i.hasAttribute("capture")?"camera":"phone";phSmall(f).then(cb).catch(()=>{});i.value=""})}
 window.TMC.photoHTML=photoHTML;window.TMC.bindPhoto=bindPhoto;window.TMC.shrinkPhoto=shrinkPhoto;
+/* ---- VER 9 PHOTOS TO DRIVE (Johan 1 Nov 2026) — same as Fuel / Purchases / base ----
+   Photo is made small on the phone (max 800px, JPEG ~0.5, aim 50-100 KB), kept in THIS app's own
+   on-phone queue (IndexedDB "<APP_ID>_photos") until the upload worked, then sent to the app's own Drive folder.
+   TMC.phKeep(dataUrl,ref[,id[,at]]) -> photo id (put that id in your record). */
+Object.assign(T.en,{phView:"🖼️ View photo",phGone:"Photo removed (older than 2 months)",phWait:"Photo not sent yet (still on the phone)",phClose:"✖ Close",phLoad:"Loading photo…",phNo:"Photo not found."});
+Object.assign(T.fr,{phView:"🖼️ Voir la photo",phGone:"Photo supprimée (plus de 2 mois)",phWait:"Photo pas encore envoyée (encore sur le téléphone)",phClose:"✖ Fermer",phLoad:"Chargement de la photo…",phNo:"Photo introuvable."});
+Object.assign(T.ar,{phView:"🖼️ عرض الصورة",phGone:"تم حذف الصورة (أقدم من شهرين)",phWait:"الصورة لم تُرسل بعد (ما زالت على الهاتف)",phClose:"✖ إغلاق",phLoad:"جاري تحميل الصورة…",phNo:"الصورة غير موجودة."});
+const PH_DAYS=60,PH_MAX=800,PH_Q=0.5,PH_AIM=136000;
+let phDbP=null;
+function phDb(){return phDbP||(phDbP=new Promise((ok,no)=>{try{const r=indexedDB.open(P+"photos",1);r.onupgradeneeded=()=>r.result.createObjectStore("q",{keyPath:"id"});r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)}catch(e){no(e)}}))}
+function phTx(mode,f){return phDb().then(db=>new Promise((ok,no)=>{const tx=db.transaction("q",mode),s=tx.objectStore("q");let out;const r=f(s);if(r)r.onsuccess=()=>{out=r.result};tx.oncomplete=()=>ok(out);tx.onerror=()=>no(tx.error)}))}
+const phQ={all:()=>phTx("readonly",s=>s.getAll()).then(a=>a||[]),get:id=>phTx("readonly",s=>s.get(id)),put:o=>phTx("readwrite",s=>s.put(o)),del:id=>phTx("readwrite",s=>s.delete(id))};
+const phOld=at=>Date.now()-(Date.parse(at)||Date.now())>PH_DAYS*864e5;
+const phRec=id=>{const r=R["pl:"+id];return r&&!r.del?r.data:null};
+function phState(id){const d=phRec(id);return d?(d.removed?"removed":"drive"):(phLocal[id]?"phone":"none")}
+const phLocal={};
+function phSmall(file){return shrinkPhoto(file,PH_MAX,PH_Q).then(d=>d.length<=PH_AIM?d:shrinkPhoto(file,PH_MAX,0.4)).then(d=>d.length<=PH_AIM?d:shrinkPhoto(file,PH_MAX,0.3))}
+function phKeep(d,ref,id,at){id=String(id||("ph"+Date.now()+Math.random().toString(36).slice(2,6)));phLocal[id]=1;
+  phQ.put({id:id,d:String(d),at:at||new Date().toISOString(),ref:String(ref||"").slice(0,80)}).then(()=>phSoon(300)).catch(e=>console.warn(e));return id}
+function phBackfill(list){return phQ.all().then(q=>{const have={};q.forEach(o=>have[o.id]=1);let n=0;
+  (list||[]).forEach(o=>{if(!o||!o.id||!o.d||have[o.id]||phRec(o.id)||phOld(o.at))return;phKeep(o.d,o.ref,o.id,o.at);n++});return n}).catch(()=>0)}
+let phBusy=false,phTmr=null,phFails=0;
+function phSoon(ms){clearTimeout(phTmr);phTmr=setTimeout(phPump,ms==null?2000:ms)}
+function phPump(){if(phBusy||!syncOn()||!navigator.onLine)return Promise.resolve(0);if(tokMode()&&!sTok())return Promise.resolve(0);phBusy=true;let sent=0;
+  return phQ.all().then(q=>{q.sort((a,b)=>String(a.at).localeCompare(String(b.at)));
+    const go=q.slice(0,2);
+    return go.reduce((p,o)=>p.then(()=>{if(phOld(o.at)||phRec(o.id)){delete phLocal[o.id];return phQ.del(o.id)}
+      return api({action:"photo",token:sTok()||undefined,code:sTok()?undefined:(sCode()||undefined),id:o.id,d:o.d,at:o.at,ref:o.ref}).then(j=>{
+        if(j&&j.ok){sent++;delete phLocal[o.id];return phQ.del(o.id)}
+        if(j&&/^(bad_photo|bad_id|too_big)$/.test(j.error||"")){delete phLocal[o.id];return phQ.del(o.id)}
+        throw new Error(j&&j.error||"photo")})}),Promise.resolve()).then(()=>q.length-go.length)})
+  .then(left=>{phBusy=false;phFails=0;if(sent)syncSoon(200);if(left>0)phSoon(15000);return sent})
+  .catch(e=>{phBusy=false;phFails++;phSoon(Math.min(300000,15000*Math.pow(2,phFails-1)));return sent})}
+phQ.all().then(q=>{q.forEach(o=>phLocal[o.id]=1);if(q.length)phSoon(5000)}).catch(()=>{});
+addEventListener("online",()=>phSoon(1500));
+function phBtn(id){const u=me();if(!id||!u||!u.admin)return "";const s=phState(id);
+  if(s==="removed")return `<p class="hint phGone">${esc(t("phGone"))}</p>`;
+  return `<button type="button" class="phView" data-phv="${esc(id)}">${esc(t("phView"))}</button>`}
+function phShow(src,msg){let o=document.getElementById("phOv");if(!o){o=document.createElement("div");o.id="phOv";o.className="phOv";document.body.appendChild(o)}
+  o.innerHTML=`${src?`<img alt="" src="${esc(src)}">`:`<p class="phMsg">${esc(msg||"")}</p>`}<button type="button" id="phOvX">${esc(t("phClose"))}</button>`;$("phOvX").onclick=()=>o.remove()}
+function phView(id){const u=me();if(!u||!u.admin)return Promise.resolve(false);
+  return phQ.get(id).catch(()=>null).then(o=>{if(o&&o.d){phShow(o.d);return true}const d=phRec(id);
+    if(d&&d.removed){phShow("",t("phGone"));return false}if(window.TMC.phLocalGet){const x=window.TMC.phLocalGet(id);if(x){phShow(x);return true}}
+    if(!d){phShow("",t("phWait"));return false}phShow("",t("phLoad"));
+    return api({action:"photoget",token:sTok()||undefined,id:id}).then(j=>{if(j&&j.ok&&j.d){phShow(j.d);return true}phShow("",t(j&&j.error==="photo_removed"?"phGone":"phNo"));return false},()=>{phShow("",t("ncT"));return false})})}
+document.addEventListener("click",e=>{const b=e.target&&e.target.closest&&e.target.closest("[data-phv]");if(b){e.preventDefault();phView(b.getAttribute("data-phv"))}});
+window.TMC.phKeep=phKeep;window.TMC.phBackfill=phBackfill;window.TMC.phPump=phPump;window.TMC.phState=phState;window.TMC.phBtn=phBtn;window.TMC.phView=phView;window.TMC.phSmall=phSmall;window.TMC.phQueue=()=>phQ.all();window.TMC.PH_DAYS=PH_DAYS;
+
 /* ---- REPORT: green company table (CONFIG REPORT_COLOR). rows=[[label,value],...] ---- */
 function reportHTML(title,rows){const tot=rows.reduce((a,r)=>a+(+r[1]||0),0);return `<div class="repH">📊 ${esc(title)}</div><table class="rep"><thead><tr><th>${esc(t("rpItem"))}</th><th>${esc(t("rpQty"))}</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r[0])}</td><td>${esc(r[1])}</td></tr>`).join("")}</tbody><tfoot><tr><td>${esc(t("rpTot"))}</td><td>${tot}</td></tr></tfoot></table>`}
 window.TMC.reportHTML=reportHTML;
@@ -683,7 +740,7 @@ function svDone(f,to){const V={};svVeh().forEach(v=>V[String(v.fleet)]=v);return
 const svMeterTxt=p=>p.meter===""||p.meter==null?"":svNum(p.meter)+" "+svU(p.mu||(p.unit==="h"?"h":"km"));
 function svRepHTML(u){
  if(!repOk(u))return `<div class="box"><p>${esc(t("noAccess"))}</p></div>`;
- const S=svStats(),cnt=[0,0,0,0];S.forEach(s=>cnt[s.g]++);const [f,to]=svRange(),D=svDone(f,to);
+ const S=svStats(),cnt=[0,0,0,0];S.forEach(s=>cnt[s.g]++);const [f,to]=svRange(),D=svDone(f,to),M=mnInPeriod(f,to);
  const box=(g,l,sub)=>`<div class="svBox" data-g="${g}" style="background:${SVC[g]}"><div class="n">${cnt[g]}</div><div class="l">${esc(t(l))}</div><div class="s">${esc(t(sub))}</div></div>`;
  const card=s=>`<div class="svIt" data-g="${s.g}" data-f="${esc(s.v.fleet)}"><div class="bar" style="background:${SVC[s.g]}"></div><div class="in"><div class="top"><div><span class="v">${esc(s.v.fleet)}</span> <span class="vn">${esc(s.v.name||"")}</span></div><span class="pill" style="background:${SVC[s.g]}">${esc(t(SVP[s.g]))}</span></div><div class="left" style="color:${SVT[s.g]}">${esc(svLeftTxt(s))}</div><div class="meta">${esc(svMeta(s))}</div></div></div>`;
  const per=f===to?svDt(f):svDt(f)+" – "+svDt(to);
@@ -697,6 +754,9 @@ function svRepHTML(u){
  <p class="hint" id="svPerT">${esc(t("rsPer"))}: ${esc(per)} · <b>${D.length} ${esc(t("rsNDone"))}</b></p>
  <div id="svDoneL">${D.length?D.map(p=>`<div class="svDn"><div class="r1"><span>${esc(p.fleet)}</span><span>${esc(svDt(p.day,false))}</span></div><div class="r2">${esc([svMeterTxt(p),p.note||""].filter(Boolean).join(" · "))}<br>${esc(t("rsBy"))}: ${esc(p.by||"")}</div></div>`).join(""):`<p class="hint">${esc(t("rsNoneDone"))}</p>`}
  <div class="svTot" id="svTot">${esc(t("rsTotal"))}: ${D.length} ${esc(t("rsNDone"))}</div></div>
+ <h2 class="svH">${esc(t("rsMaint"))}</h2>
+ <p class="hint" id="svMaintT">${esc(t("rsPer"))}: ${esc(per)} · <b>${M.length} ${esc(t("rsNMaint"))}</b></p>
+ <div id="svMaintL">${M.length?M.map(r=>`<div class="svDn"><div class="r1"><span>${esc(r.fleet)} · ${esc(t(MN_TYPES.find(a=>a[0]===r.type)?MN_TYPES.find(a=>a[0]===r.type)[1]:"mnOther"))}</span><span>${esc(svDt(r.day,false))}</span></div><div class="r2">${esc(t("mnQty"))}: ${esc(svNum(r.qty))}${r.cost!==""&&r.cost!=null?" · "+t("mnCost")+": "+svNum(r.cost):""}${r.notes?" · "+r.notes:""}<br>${esc(t("rsBy"))}: ${esc(r.by||"")}</div></div>`).join(""):`<p class="hint">${esc(t("rsNoneMaint"))}</p>`}</div>
  <h2 class="svH">📝 ${esc(t("rsNotesH"))}</h2><textarea id="svNotes" class="svNotes" rows="3" placeholder="${esc(t("rsNotesP"))}" spellcheck="true" autocapitalize="sentences">${esc(svNotes)}</textarea>
  <div class="rpAct noPr">${canXlsU(u)?`<button type="button" class="rpXls" id="rpXls">${esc(t("rpXls"))}</button>`:""}<button type="button" class="sec" id="rpPrint">${esc(t("rpPrint"))}</button></div>
  <div class="svFoot">${esc(t("rsPrintedBy"))} ${esc((me()||{}).name||"")} · ${esc(svStamp())} · ${esc(t("rsPage"))} 1 ${esc(t("rsOf"))} 1</div>
@@ -711,6 +771,10 @@ function svRepXlsx(){const S=svStats(),[f,to]=svRange(),D=svDone(f,to),R=[],cnt=
  if(!D.length)R.push([{v:t("rsNoneDone"),s:"b"}]);
  D.forEach((p,i)=>{const st=i%2?"a":"b";R.push([p.day,p.fleet,p.veh&&p.veh.name||"",svMeterTxt(p),p.note||"",p.by||""].map(x=>({v:String(x),s:st})))});
  const b=R.length;R.push([{v:t("rsTotDone"),s:"t"},{v:"",s:"t"},{v:"",s:"t"},{v:"",s:"t"},{v:"",s:"t"},D.length?{v:D.length,s:"t",f:`COUNTA(B${a}:B${b})`}:{v:0,s:"t"}]);
+ const MM=mnInPeriod(f,to);R.push([],[{v:t("rsSec3b"),s:"title"}],[t("rsDate"),t("rsUnit"),t("rsType"),t("rsQty"),t("rsCost"),t("rsNoteC"),t("rsDoneBy")].map(v=>({v:v,s:"h"})));
+ if(!MM.length)R.push([{v:t("rsNoneMaint"),s:"b"}]);
+ MM.forEach((r,i)=>{const st=i%2?"a":"b";R.push([r.day,r.fleet,t(MN_TYPES.find(a=>a[0]===r.type)?MN_TYPES.find(a=>a[0]===r.type)[1]:"mnOther"),r.qty,r.cost===""||r.cost==null?"":r.cost,r.notes||"",r.by||""].map(x=>({v:String(x),s:st})))});
+ R.push([{v:t("rsMaint"),s:"t"},{v:"",s:"t"},{v:"",s:"t"},{v:"",s:"t"},{v:"",s:"t"},{v:"",s:"t"},{v:MM.length,s:"t"}]);
  if(svNotes)R.push([],[{v:t("rsSec4"),s:"title"}],[svNotes]);
  R.push([],[t("rsPrintedBy")+" "+((me()||{}).name||"")+" · "+svStamp()]);
  const nm=(C.SHORT+" "+t("rsTitle")+" "+per.replace(" → "," to ")).replace(/[\\\/:*?"<>|]/g," ");
@@ -731,8 +795,8 @@ const svBasis=s=>!s.p?"—":(s.p.unit==="m"?t("rsMon"):s.p.unit==="h"?t("rsHrs")
 const svLastC=s=>!s.p?(s.v.reading==null||s.v.reading===""?"—":svNum(s.v.reading)+" "+svU(svDefUnit(s.v))):s.p.unit==="m"?(svLastLabel(s)||"—"):(s.v.reading==null||s.v.reading===""?"—":svNum(s.v.reading)+" "+svU(s.p.unit));
 const svDueC=s=>!s.p?"—":s.p.unit==="m"?svDt(s.p.due):svNum(s.p.due)+" "+svU(s.p.unit);
 const svRemC=s=>{if(s.g===3)return s.l.txt;const n=s.l.n,u=s.p.unit==="m"?" "+t("rsDays"):" "+svU(s.p.unit);return (n<0?"−":"")+svNum(Math.abs(n))+u};
-function svPrintHTML(u){const S=svStats(),cnt=[0,0,0,0];S.forEach(s=>cnt[s.g]++);const [f,to]=svRange(),D=svDone(f,to),site=svSite();
- return `<div id="svPrint" class="svA4"><div class="hd"><div class="l"><img src="icons/icon-192.png?v=12" alt=""><div><div class="co">${esc(C.NAME)}</div><div class="co2">${esc(t("rsTitle"))}</div></div></div>
+function svPrintHTML(u){const S=svStats(),cnt=[0,0,0,0];S.forEach(s=>cnt[s.g]++);const [f,to]=svRange(),D=svDone(f,to),M=mnInPeriod(f,to),site=svSite();
+ return `<div id="svPrint" class="svA4"><div class="hd"><div class="l"><img src="icons/icon-192.png?v=13" alt=""><div><div class="co">${esc(C.NAME)}</div><div class="co2">${esc(t("rsTitle"))}</div></div></div>
  <div class="r"><div class="title">${esc(t("rsA4T"))}</div><table class="meta"><tr><td class="k">${esc(t("rsPer"))}</td><td>${esc(svDt(f))} – ${esc(svDt(to))}</td></tr><tr><td class="k">${esc(t("rsRDate"))}</td><td>${esc(svDt(svToday()))}</td></tr><tr><td class="k">${esc(t("rsSite"))}</td><td id="svA4Site">${esc(site||"—")}</td></tr></table></div></div>
  <h2>${esc(t("rsSum"))}</h2><div class="sum"><div><span class="mk m-r"></span>${esc(t("rsOver"))}&nbsp;<b>${cnt[0]}</b></div><div><span class="mk m-a"></span>${esc(t("rsSoon"))}&nbsp;<b>${cnt[1]}</b></div><div><span class="mk m-g"></span>${esc(t("rsOk"))}&nbsp;<b>${cnt[2]}</b></div><div>${esc(t("rsTotU"))}&nbsp;<b>${S.length}</b></div></div>
  <h2>${esc(t("rsSec2"))}</h2><table class="t" id="svA4St"><thead><tr><th>${esc(t("rsUnit"))}</th><th>${esc(t("rsDesc"))}</th><th>${esc(t("rsBasis"))}</th><th class="n">${esc(t("rsLastM"))}</th><th class="n">${esc(t("rsDueAtC"))}</th><th class="n">${esc(t("rsRem"))}</th><th>${esc(t("rsStat"))}</th></tr></thead><tbody>
@@ -740,6 +804,8 @@ function svPrintHTML(u){const S=svStats(),cnt=[0,0,0,0];S.forEach(s=>cnt[s.g]++)
  <div class="note">${esc(t("rsA4Note"))}</div>
  <h2>${esc(t("rsSec3"))}</h2><table class="t" id="svA4Done"><thead><tr><th>${esc(t("rsDate"))}</th><th>${esc(t("rsUnit"))}</th><th>${esc(t("rsDesc"))}</th><th class="n">${esc(t("rsMeterAt"))}</th><th>${esc(t("rsWork"))}</th><th>${esc(t("rsDoneBy"))}</th></tr></thead><tbody>
  ${D.map(p=>`<tr><td>${esc(svDt(p.day))}</td><td class="id">${esc(p.fleet)}</td><td>${esc(p.veh&&p.veh.name||"")}</td><td class="n">${esc(svMeterTxt(p)||"—")}</td><td>${esc(p.note||"")}</td><td>${esc(p.by||"")}</td></tr>`).join("")||`<tr><td colspan="6">${esc(t("rsNoneDone"))}</td></tr>`}</tbody><tfoot><tr><td colspan="5">${esc(t("rsTotDone"))}</td><td>${D.length}</td></tr></tfoot></table>
+ <h2>${esc(t("rsSec3b"))}</h2><table class="t" id="svA4Maint"><thead><tr><th>${esc(t("rsDate"))}</th><th>${esc(t("rsUnit"))}</th><th>${esc(t("rsType"))}</th><th class="n">${esc(t("rsQty"))}</th><th class="n">${esc(t("rsCost"))}</th><th>${esc(t("rsNoteC"))}</th><th>${esc(t("rsDoneBy"))}</th></tr></thead><tbody>
+ ${M.map(r=>`<tr><td>${esc(svDt(r.day))}</td><td class="id">${esc(r.fleet)}</td><td>${esc(t(MN_TYPES.find(a=>a[0]===r.type)?MN_TYPES.find(a=>a[0]===r.type)[1]:"mnOther"))}</td><td class="n">${esc(svNum(r.qty))}</td><td class="n">${esc(r.cost===""||r.cost==null?"—":svNum(r.cost))}</td><td>${esc(r.notes||"")}</td><td>${esc(r.by||"")}</td></tr>`).join("")||`<tr><td colspan="7">${esc(t("rsNoneMaint"))}</td></tr>`}</tbody><tfoot><tr><td colspan="6">${esc(t("rsMaint"))}</td><td>${M.length}</td></tr></tfoot></table>
  <h2>${esc(t("rsSec4"))}</h2><div class="notes" id="svA4Notes">${esc(svNotes)}</div>
  <h2>${esc(t("rsSec5"))}</h2><table class="sign"><tr><th>${esc(t("rsPrep"))}</th><th>${esc(t("rsChk"))}</th><th>${esc(t("rsAppr"))}</th></tr>${["rsName","rsSig","rsDate"].map(k=>`<tr>${[0,1,2].map(()=>`<td><span>${esc(t(k))}</span></td>`).join("")}</tr>`).join("")}</table>
  <div class="ft" id="svA4Ft"><span>${esc(C.NAME)} v${C.VER} · ${esc(t("rsTitle"))}</span><span class="pg">${esc(t("rsPage"))} 1 ${esc(t("rsOf"))} 1</span><span>${esc(t("rsPrinted"))} ${esc(svStamp())} ${esc(t("rsByW"))} ${esc((u||me()||{}).name||"")}</span></div></div>`}
@@ -775,11 +841,14 @@ Object.assign(window.TMC,{svStats:svStats,svDone:svDone,svRange:svRange,svRp:()=
 function workHTML(u){
   const V=svVeh(),v=V.find(x=>String(x.fleet)===svSel),ed=canKind("s","add");
   let top=`<div class="box"><h2>${esc(t("svT"))}</h2><p class="hint">${esc(t("svPick"))}</p>${svListHTML()}</div>`;
+  if(v&&mnMode==="pick"&&canKind("m","add"))return mnPickHTML(u,v);
+  if(v&&mnMode==="new"&&mnD&&mnD.fleet===String(v.fleet)&&canKind("m","add"))return mnFormHTML(u,v);
+  if(v&&mnMode==="list"&&canKind("m","view"))return mnListHTML(u,v);
   if(v&&jcMode==="new"&&jcD&&jcD.fleet===String(v.fleet)&&canKind("jc","add"))return jcFormHTML(u,v);
   if(v&&jcMode==="list"&&canKind("jc","view"))return jcListHTML(u,v);
-  if(v&&!ed&&(canKind("jc","view")||canKind("jc","add"))){top=`<div class="box" id="svEd"><h2>${esc(v.fleet)} ${esc(v.name||"")}</h2>${jcBtns(v)}<button type="button" class="sec" id="svBack">${esc(t("back"))}</button></div>`;svSel=String(v.fleet)}
+  if(v&&!ed&&(canKind("jc","view")||canKind("jc","add")||canKind("m","view")||canKind("m","add"))){top=`<div class="box" id="svEd"><h2>${esc(v.fleet)} ${esc(v.name||"")}</h2>${jcBtns(v)}${mnBtns(v)}<button type="button" class="sec" id="svBack">${esc(t("back"))}</button></div>`;svSel=String(v.fleet)}
   if(v&&ed){const p=svPlan(v.fleet)||{},un=p.unit||svDefUnit(v);
-    top=`<div class="box" id="svEd"><h2>${esc(v.fleet)} ${esc(v.name||"")}</h2>${jcBtns(v)}<p style="font-size:20px">${esc(t("svNow"))}: <b>${esc(v.reading==null?"-":v.reading)}</b> <span class="hint">(${esc(t("svFrom"))} ${esc(v.day||"")})</span></p>
+    top=`<div class="box" id="svEd"><h2>${esc(v.fleet)} ${esc(v.name||"")}</h2>${jcBtns(v)}${mnBtns(v)}<p style="font-size:20px">${esc(t("svNow"))}: <b>${esc(v.reading==null?"-":v.reading)}</b> <span class="hint">(${esc(t("svFrom"))} ${esc(v.day||"")})</span></p>
     <h3>${esc(t("svUnit"))}</h3>${[["km","uKm"],["h","uH"],["m","uM"]].map(([k,l])=>`<button type="button" class="${un===k?"":"sec"} svU" data-u="${k}" style="min-height:64px;font-size:20px">${esc(t(l))}</button>`).join("")}
     <h3>${esc(un==="m"?t("svDate"):t("svDue"))}</h3><input id="svDue" ${un==="m"?'type="date"':'type="text" inputmode="decimal"'} style="font-size:24px;min-height:64px" value="${esc(p.unit===un?(p.due||""):"")}">
     <h3>${esc(un==="m"?t("svEveryM"):t("svEvery"))}</h3><input id="svEvery" type="text" inputmode="decimal" style="font-size:24px;min-height:64px" value="${esc(svEv(v.fleet,un)||"")}"><p class="hint">${esc(t("svAuto"))}</p>
@@ -794,12 +863,12 @@ function workHTML(u){
   ${canKind("x","view")?(notes.length?notes.map(n=>`<div class="urow" data-id="${esc(n.id)}"><span class="n">${esc(n.text)}</span><span class="hint">${esc(n.by)}</span>${fixBtn("x",n.id,"text")}${fixedNote(n)}</div>`).join(""):`<p class="hint">${esc(t("exNone"))}</p>`):""}</div>
   ${tools?`<div class="box">${tools}<div class="hint" id="exOut"></div></div>`:""}`;
 }
-function bindSvList(){document.querySelectorAll(".svV").forEach(b=>b.onclick=()=>{svSel=b.dataset.f;tab="work";jcMode="";jcD=null;render()})}
+function bindSvList(){document.querySelectorAll(".svV").forEach(b=>b.onclick=()=>{svSel=b.dataset.f;tab="work";jcMode="";jcD=null;mnMode="";mnD=null;render()})}
 window.TMC.bindHomeExtra=bindSvList;
 function bindWork(u){
   const on=(id,f)=>{const e=$(id);if(e)e.onclick=f};bindSvList();
   document.querySelectorAll(".svU").forEach(b=>b.onclick=()=>{const p=svPlan(svSel)||{};window.TMC.svUnit=b.dataset.u;const tmp=Object.assign({},p,{unit:b.dataset.u,due:p.unit===b.dataset.u?p.due:""});window.TMC.svTmp=tmp;svUnitOverride=b.dataset.u;render()});
-  on("svBack",()=>{svSel="";jcMode="";jcD=null;render()});bindJob(u);
+  on("svBack",()=>{svSel="";jcMode="";jcD=null;mnMode="";mnD=null;render()});bindJob(u);bindMn(u);
   on("svSave",()=>{const un=window.TMC.svUnit,veh=svVeh().find(x=>String(x.fleet)===svSel)||{},evS=($("svEvery")?$("svEvery").value.trim():""),ev=evS===""?"":Number(evS),done=!!($("svDone")&&$("svDone").checked),note=$("svNote")?$("svNote").value.trim():"";let v=$("svDue").value.trim();
     const bad=()=>{const e=$("svErr");e.textContent=t("svBad");e.style.display="block"};
     if(evS!==""&&!(isFinite(ev)&&ev>0))return bad();
@@ -827,6 +896,9 @@ Object.assign(T.fr,{store:"📦 Magasin pièces",stT:"📦 Magasin de pièces",s
  jcNew:"📋 Nouvelle fiche de travail",jcList:"📋 Travaux",jcT:"📋 Fiche de travail",jcVeh:"Véhicule / machine",jcDate:"Date",jcMeter:"Compteur",jcWork:"Travail fait",jcBy:"Fait par",jcParts:"Pièces utilisées (du magasin)",jcPick:"Choisir une pièce",jcQty:"Qté utilisée",jcAddP:"➕ Ajouter au travail",jcNoP:"Aucune pièce sur ce travail.",jcNext:"Prochain entretien après ce travail",jcSave:"💾 Enregistrer la fiche",jcNeg:"Stock insuffisant",jcNegAdm:"Seul l'Admin peut enregistrer avec un stock sous zéro.",jcOver:"⚠️ Dérogation Admin : enregistrer même si le stock passe sous zéro",jcBad:"Remplissez la date (aujourd'hui ou avant), le travail fait et fait par.",jcNoMeter:"Pas encore de relevé compteur de Fuel pour ce véhicule.",jcEvBad:"Tapez l'intervalle (Tous les) pour relancer le compte à rebours.",jcOk:"Fiche enregistrée. Stock mis à jour, compte à rebours relancé.",jcNone:"Pas encore de fiches pour ce véhicule.",jcPrint:"🖨️ Imprimer la fiche A4",jcNo:"N° de fiche",jcA4T:"Fiche de travail d'entretien",jcSec1:"1. Véhicule / machine",jcSec2:"2. Travail fait",jcSec3:"3. Pièces utilisées",jcSec4:"4. Validation",jcTotP:"Total des pièces utilisées",jcNextAt:"Prochain entretien prévu",jcOverN:"Dérogation Admin – stock passé sous zéro",jcRestart:"Le compte à rebours repart à",jcHave:"en stock",jcNeed:"besoin",jcNegRef:"Le serveur a refusé une fiche : stock insuffisant.",jcBadQ:"Choisissez une pièce et une qté au-dessus de 0.",pvT:"Véhicules pour cette pièce",pvAll:"Tous les véhicules",pvAllH:"Articles communs, comme l'huile",pvNeed:"Cochez un ou plusieurs véhicules, ou Tous les véhicules.",pvNoV:"Pas encore de véhicules de Fuel. Utilisez Tous les véhicules.",pvF:"Filtre véhicule",pvFAll:"Toutes les pièces (tous les véhicules)",pvFNone:"Aucune pièce pour ce véhicule.",pvCol:"Véhicule",pvPickNone:"Pas encore de pièces pour ce véhicule au magasin. Demandez à l'Admin de cocher ce véhicule sur la pièce."});
 Object.assign(T.ar,{store:"📦 مخزن القطع",stT:"📦 مخزن القطع",stAdd:"➕ إضافة قطعة",stOrd:"🛒 للطلب",stLog:"📒 سجل تصحيح المخزون",stQ:"ابحث برقم القطعة أو الاسم",stNone:"لا توجد قطع بعد. اضغط «إضافة قطعة».",stPn:"رقم القطعة",stName:"اسم القطعة",stUnit:"الوحدة (قطعة، لتر، كغ…)",stQty:"الكمية في المخزون",stMin:"الحد الأدنى",stSave:"💾 حفظ القطعة",stIn:"في المخزون",stMinS:"الأدنى",stLow:"تحت الحد الأدنى",stBad:"املأ رقم القطعة والاسم، وأرقاماً (0 أو أكثر) للكمية والحد الأدنى.",stDup:"رقم القطعة هذا موجود في المخزن.",stOrdT:"🛒 للطلب – تحت الحد الأدنى",stOrdNone:"لا شيء للطلب. كل القطع عند الحد الأدنى أو أكثر.",stOrdQ:"للطلب",stXls:"📊 Excel",stFix:"✏️ تصحيح المخزون (المدير)",stFixT:"✏️ تصحيح المخزون (المدير)",stNow:"في المخزون الآن",stReal:"العدد الفعلي الآن",stWhy:"السبب (إلزامي)",stFixSave:"💾 حفظ التصحيح",stWhyNeed:"اكتب العدد الفعلي (0 أو أكثر) وسبباً.",stLogNone:"لا توجد تصحيحات بعد.",stOld:"كان",stNew:"الآن",stSaved:"تم حفظ القطعة.",stFixOk:"تم تصحيح المخزون وتسجيله.",stNoView:"لا يمكنك رؤية مخزن القطع. اسأل المدير.",stTotO:"مجموع الطلب",
  jcNew:"📋 بطاقة عمل جديدة",jcList:"📋 الأعمال",jcT:"📋 بطاقة عمل",jcVeh:"المركبة / الآلة",jcDate:"التاريخ",jcMeter:"العداد",jcWork:"العمل المنجز",jcBy:"أنجزه",jcParts:"القطع المستعملة (من المخزن)",jcPick:"اختر قطعة",jcQty:"الكمية المستعملة",jcAddP:"➕ أضف إلى العمل",jcNoP:"لا توجد قطع في هذا العمل.",jcNext:"الصيانة القادمة بعد هذا العمل",jcSave:"💾 حفظ بطاقة العمل",jcNeg:"المخزون غير كافٍ",jcNegAdm:"المدير فقط يمكنه الحفظ والمخزون تحت الصفر.",jcOver:"⚠️ تجاوز المدير: احفظ حتى لو نزل المخزون تحت الصفر",jcBad:"املأ التاريخ (اليوم أو قبله) والعمل المنجز ومن أنجزه.",jcNoMeter:"لا توجد قراءة عداد من Fuel لهذه المركبة بعد.",jcEvBad:"اكتب فترة الصيانة (كل) ليبدأ العد التنازلي من جديد.",jcOk:"تم حفظ بطاقة العمل. تم تحديث المخزون وإعادة العد التنازلي.",jcNone:"لا توجد بطاقات عمل لهذه المركبة بعد.",jcPrint:"🖨️ طباعة بطاقة العمل A4",jcNo:"رقم البطاقة",jcA4T:"بطاقة عمل صيانة المركبة",jcSec1:"1. المركبة / الآلة",jcSec2:"2. العمل المنجز",jcSec3:"3. القطع المستعملة",jcSec4:"4. الاعتماد",jcTotP:"مجموع القطع المستعملة",jcNextAt:"موعد الصيانة القادمة",jcOverN:"تجاوز المدير – نزل المخزون تحت الصفر",jcRestart:"يبدأ العد التنازلي من جديد عند",jcHave:"المتوفر",jcNeed:"المطلوب",jcNegRef:"رفض الخادم بطاقة عمل: المخزون غير كافٍ.",jcBadQ:"اختر قطعة واكتب كمية أكبر من 0.",pvT:"المركبات لهذه القطعة",pvAll:"كل المركبات",pvAllH:"مواد مشتركة، مثل الزيت",pvNeed:"اختر مركبة واحدة أو أكثر، أو كل المركبات.",pvNoV:"لا توجد مركبات من Fuel بعد. استعمل كل المركبات.",pvF:"تصفية حسب المركبة",pvFAll:"كل القطع (كل المركبات)",pvFNone:"لا توجد قطع لهذه المركبة.",pvCol:"المركبة",pvPickNone:"لا توجد قطع لهذه المركبة في المخزن بعد. اطلب من المدير اختيار هذه المركبة في القطعة."});
+Object.assign(T.en,{"mnPh":"📷 Photo (optional)","mnPhDel":"🗑️ Remove photo","mnNew": "🔧 Maintenance / Repair", "mnList": "🔧 Maintenance log", "mnT": "🔧 Maintenance / Repair", "mnPick": "What was done?", "mnTyres": "🛞 Tyres", "mnBattery": "🔋 Battery", "mnRepair": "🛠️ Repair", "mnOther": "📦 Other", "mnQty": "Qty", "mnCost": "Cost (optional)", "mnNotes": "Notes", "mnSave": "💾 Save", "mnBad": "Fill in the date (today or earlier) and qty (0 or more).", "mnOk": "Maintenance saved. Next service not changed.", "mnNone": "No maintenance for this vehicle yet.", "mnHint": "Does not restart the next-service countdown.", "rsMaint": "🔧 Maintenance / repairs", "rsNMaint": "maintenance jobs", "rsNoneMaint": "No maintenance in this period.", "rsType": "Type", "rsQty": "Qty", "rsCost": "Cost", "rsSec3b": "3b. Maintenance / repairs in the period"});
+Object.assign(T.fr,{"mnPh":"📷 Photo (facultatif)","mnPhDel":"🗑️ Enlever la photo","mnNew": "🔧 Entretien / Réparation", "mnList": "🔧 Journal entretien", "mnT": "🔧 Entretien / Réparation", "mnPick": "Qu’a-t-on fait ?", "mnTyres": "🛞 Pneus", "mnBattery": "🔋 Batterie", "mnRepair": "🛠️ Réparation", "mnOther": "📦 Autre", "mnQty": "Qté", "mnCost": "Coût (facultatif)", "mnNotes": "Notes", "mnSave": "💾 Enregistrer", "mnBad": "Remplissez la date (aujourd’hui ou avant) et la qté (0 ou plus).", "mnOk": "Entretien enregistré. Prochain entretien inchangé.", "mnNone": "Pas encore d’entretien pour ce véhicule.", "mnHint": "Ne relance pas le compte à rebours du prochain entretien.", "rsMaint": "🔧 Entretiens / réparations", "rsNMaint": "entretiens / réparations", "rsNoneMaint": "Aucun entretien / réparation dans cette période.", "rsType": "Type", "rsQty": "Qté", "rsCost": "Coût", "rsSec3b": "3b. Entretiens / réparations pendant la période"});
+Object.assign(T.ar,{"mnPh":"📷 صورة (اختياري)","mnPhDel":"🗑️ إزالة الصورة","mnNew": "🔧 صيانة / إصلاح", "mnList": "🔧 سجل الصيانة", "mnT": "🔧 صيانة / إصلاح", "mnPick": "ماذا تم؟", "mnTyres": "🛞 إطارات", "mnBattery": "🔋 بطارية", "mnRepair": "🛠️ إصلاح", "mnOther": "📦 أخرى", "mnQty": "الكمية", "mnCost": "التكلفة (اختياري)", "mnNotes": "ملاحظات", "mnSave": "💾 حفظ", "mnBad": "املأ التاريخ (اليوم أو قبله) والكمية (0 أو أكثر).", "mnOk": "تم حفظ الصيانة. موعد الصيانة القادمة لم يتغير.", "mnNone": "لا توجد صيانة لهذه المركبة بعد.", "mnHint": "لا يعيد العد التنازلي للصيانة القادمة.", "rsMaint": "🔧 صيانة / إصلاحات", "rsNMaint": "أعمال صيانة", "rsNoneMaint": "لا توجد صيانة في هذه الفترة.", "rsType": "النوع", "rsQty": "الكمية", "rsCost": "التكلفة", "rsSec3b": "3ب. صيانة / إصلاحات في الفترة"});
 const chadDT=iso=>{const d=new Date(iso);return isNaN(d)?String(iso||""):new Date(d.getTime()+CHAD_MS).toISOString().slice(0,16).replace("T"," ")};
 const stParts=()=>all("pt").slice().sort((a,b)=>String(a.pn).localeCompare(String(b.pn),undefined,{numeric:true}));
 const stPart=pid=>all("pt").find(x=>String(x.id)===String(pid))||null;
@@ -915,6 +987,52 @@ function bindStore(u){const on=(id,f)=>{const e=$(id);if(e)e.onclick=f};
    fix("pt",id,"name",nm);if(String(stMinOf(R["pt:"+id].data))!==String(numV(ms)))fix("pt",id,"min",numV(ms));
    const ov=ptVeh(R["pt:"+id].data),nv=veh[0]===PV_ALL?null:veh;if(String(ov)!==String(nv))fix("pt",id,"veh",veh);x();render()}})}
 window.TMC.appViews={store:{html:storeHTML,bind:bindStore}};
+/* ---- v12 MAINTENANCE / REPAIR (not a service). kind "m" = {id,type,fleet,name,date,meter,mu,qty,cost,notes,by,user,at,p (photo id via phKeep)}
+   Does NOT write kind "s", does NOT restart next-service countdown, does NOT change parts stock. Photos use VER 9 Drive queue (same as Fuel/Purchases). */
+let mnMode="",mnD=null;
+const MN_TYPES=[["tyres","mnTyres"],["battery","mnBattery"],["repair","mnRepair"],["other","mnOther"]];
+const mnTypeTxt=tp=>{const x=MN_TYPES.find(a=>a[0]===tp);return x?t(x[1]).replace(/^[^ ]+ /,"") : tp};
+const mnRecs=f=>all("m").filter(r=>String(r.fleet)===String(f)).sort((a,b)=>String(b.date).localeCompare(String(a.date))||String(b.at).localeCompare(String(a.at)));
+function mnStart(u,v,tp){mnD={fleet:String(v.fleet),name:v.name||"",type:tp,date:svToday(),qty:"",cost:"",notes:"",by:u.name,p:"",pData:""}}
+function mnBtns(v){const n=mnRecs(v.fleet).length;return `<div class="jcBtns" id="mnBtns">${canKind("m","add")?`<button type="button" class="stBig stGreen" id="mnNewB">${esc(t("mnNew"))}</button>`:""}${canKind("m","view")?`<button type="button" class="sec stBig" id="mnListB">${esc(t("mnList"))} (${n})</button>`:""}</div>`}
+function mnPickHTML(u,v){return `<div class="box" id="mnPick"><h2>${esc(t("mnT"))}</h2><p class="hint">${esc(v.fleet)} ${esc(v.name||"")}</p><p class="hint">${esc(t("mnPick"))}</p><p class="hint">${esc(t("mnHint"))}</p>${MN_TYPES.map(([k,l])=>`<button type="button" class="stBig stGreen mnType" data-t="${k}">${esc(t(l))}</button>`).join("")}<button type="button" class="sec" id="mnBack">${esc(t("back"))}</button></div>`}
+function mnFormHTML(u,v){const D=mnD,meter=jcHasM(v)?svNum(v.reading)+" "+svU(svDefUnit(v)):"—";
+ return `<div class="box" id="mnForm"><h2>${esc(t("mnT"))}</h2>
+ <div class="jcRow"><span class="k">${esc(t("jcVeh"))}</span><b>${esc(v.fleet)} ${esc(v.name||"")}</b></div>
+ <div class="jcRow"><span class="k">${esc(t("rsType"))}</span><b>${esc(t(MN_TYPES.find(a=>a[0]===D.type)[1]))}</b></div>
+ <div class="jcRow"><span class="k">${esc(t("jcMeter"))}</span><b>${esc(meter)}</b></div>
+ <h3><label for="mnDate">${esc(t("jcDate"))}</label></h3><div class="jcDW"><div id="mnDateTx" class="jcDTx" aria-hidden="true">📅 ${esc(jcDMY(D.date))}</div><input id="mnDate" type="date" max="${esc(svToday())}" value="${esc(D.date)}"></div>
+ <h3><label for="mnQty">${esc(t("mnQty"))}</label></h3><input id="mnQty" type="text" inputmode="decimal" value="${esc(D.qty)}" style="font-size:24px;min-height:64px">
+ <h3><label for="mnCost">${esc(t("mnCost"))}</label></h3><input id="mnCost" type="text" inputmode="decimal" value="${esc(D.cost)}" style="font-size:22px;min-height:60px">
+ <h3><label for="mnNotes">${esc(t("mnNotes"))}</label></h3><textarea id="mnNotes" rows="3" spellcheck="true" autocapitalize="sentences" style="font-size:20px">${esc(D.notes)}</textarea>
+ <h3><label for="mnBy">${esc(t("jcBy"))}</label></h3><input id="mnBy" type="text" autocomplete="off" value="${esc(D.by)}" style="font-size:22px;min-height:60px">
+ <h3>${esc(t("mnPh"))}</h3>${photoHTML("mnPh")}<img id="mnPhImg" class="phPrev" alt="" style="${D.pData?"display:block":"display:none"}"${D.pData?` src="${esc(D.pData)}"`:""}>${D.pData?`<button type="button" class="sec" id="mnPhDel">${esc(t("mnPhDel"))}</button>`:""}
+ <p class="hint">${esc(t("mnHint"))}</p>
+ <p class="err" id="mnErr"></p><button type="button" class="stBig stGreen" id="mnSave">${esc(t("mnSave"))}</button><button type="button" class="sec" id="mnBack">${esc(t("back"))}</button></div>`}
+function mnListHTML(u,v){const M=mnRecs(v.fleet);
+ return `<div class="box" id="mnList"><h2>${esc(t("mnList"))} – ${esc(v.fleet)} ${esc(v.name||"")}</h2>${canKind("m","add")?`<button type="button" class="stBig stGreen" id="mnNewB">${esc(t("mnNew"))}</button>`:""}
+ ${M.length?M.map(r=>`<div class="jcIt" data-m="${esc(r.id)}"><div class="r1"><span>${esc(t(MN_TYPES.find(a=>a[0]===r.type)?MN_TYPES.find(a=>a[0]===r.type)[1]:"mnOther"))}</span><span>${esc(svDt(r.date))}</span></div><div class="r2">${esc(t("mnQty"))}: ${esc(svNum(r.qty))} · ${esc(t("jcMeter"))}: ${esc(r.meter===""||r.meter==null?"—":svNum(r.meter)+" "+svU(r.mu))}</div><div class="r2b">${esc(t("jcBy"))}: ${esc(r.by||"")}${r.cost!==""&&r.cost!=null?` · ${esc(t("mnCost"))}: ${esc(svNum(r.cost))}`:""}</div><div class="r3">${esc(r.notes||"")}</div>${r.p?phBtn(r.p):""}</div>`).join(""):`<p class="hint">${esc(t("mnNone"))}</p>`}
+ <button type="button" class="sec" id="mnBack">${esc(t("back"))}</button></div>`}
+function mnGrab(){const D=mnD;if(!D)return;const g=id=>$(id)?$(id).value:null;let x;
+ if((x=g("mnDate"))!=null)D.date=x.trim();if((x=g("mnQty"))!=null)D.qty=x.trim();if((x=g("mnCost"))!=null)D.cost=x.trim();if((x=g("mnNotes"))!=null)D.notes=x.trim();if((x=g("mnBy"))!=null)D.by=x.trim()}
+function mnSaveFn(u){mnGrab();const D=mnD,v=jcVehNow();if(!D||!v)return;
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(D.date)||D.date>svToday()||!numOk(D.qty)||!(+D.qty>=0)||!D.by)return errSet("mnErr",t("mnBad"));
+ if(D.cost!==""&&!(numOk(D.cost)&&+D.cost>=0))return errSet("mnErr",t("mnBad"));
+ const ts=Date.now(),id="m"+ts,at=new Date(ts).toISOString(),meter=jcHasM(v)?+v.reading:"";
+ const pid=D.pData?phKeep(D.pData,"maint "+v.fleet+" "+D.type):"";
+ const rec={id:id,type:D.type,fleet:String(v.fleet),name:v.name||"",date:D.date,meter:meter,mu:svDefUnit(v),qty:+D.qty,cost:D.cost===""?"":+D.cost,notes:D.notes,by:D.by,user:u.name,at:at,p:pid};
+ if(put("m",id,rec)===false)return;
+ mnD=null;mnMode="";toast(t("mnOk"));tab="home";svSel="";jcMode="";render()}
+function mnInPeriod(f,to){const V={};svVeh().forEach(v=>V[String(v.fleet)]=v);return all("m").filter(r=>V[String(r.fleet)]).map(r=>Object.assign({day:r.date||svDay(r.at),veh:V[String(r.fleet)]},r)).filter(r=>r.day>=f&&r.day<=to).sort((a,b)=>String(b.date).localeCompare(String(a.date))||String(b.at).localeCompare(String(a.at)))}
+function bindMn(u){const on=(id,f)=>{const e=$(id);if(e)e.onclick=f};const v=jcVehNow();
+ on("mnNewB",()=>{if(v){mnMode="pick";mnD=null;render()}});on("mnListB",()=>{mnMode="list";mnD=null;render()});
+ document.querySelectorAll(".mnType").forEach(b=>b.onclick=()=>{if(!v)return;mnStart(u,v,b.dataset.t);mnMode="new";render()});
+ on("mnBack",()=>{if(mnMode==="new"){mnMode="pick";mnD=null;render()}else{mnMode="";mnD=null;render()}});
+ on("mnSave",()=>mnSaveFn(u));
+ on("mnPhDel",()=>{if(!mnD)return;mnGrab();mnD.pData="";mnD.p="";render()});
+ bindPhoto("mnPh",d=>{if(!mnD)return;mnGrab();mnD.pData=d;render()});
+ const d=$("mnDate"),tx=$("mnDateTx");if(d&&tx){const paint=()=>{tx.textContent="📅 "+jcDMY(d.value)};d.onchange=d.oninput=paint}}
+
 /* ---- JOB CARD (Work tab → vehicle) ---- */
 let jcMode="",jcD=null,jcJob="";
 const jcVehNow=()=>svVeh().find(x=>String(x.fleet)===svSel);
@@ -959,7 +1077,7 @@ function jcSaveFn(u){jcGrab();const D=jcD,v=jcVehNow();if(!D||!v)return;
  jcD=null;jcMode="list";toast(t("jcOk"));render()}
 /* A4 job card: same layout + company green as the approved a4-green Service report (.svA4 classes) */
 function jcPrintHTML(j,u){const site=svSite(),P=j.parts||[],tot=stR(P.reduce((a,l)=>a+(+l.qty||0),0)),veh=svVeh().find(x=>String(x.fleet)===String(j.fleet))||{};
- return `<div id="jcPrint" class="svA4"><div class="hd"><div class="l"><img src="icons/icon-192.png?v=12" alt=""><div><div class="co">${esc(C.NAME)}</div><div class="co2">${esc(t("jcT").replace("📋 ",""))}</div></div></div>
+ return `<div id="jcPrint" class="svA4"><div class="hd"><div class="l"><img src="icons/icon-192.png?v=13" alt=""><div><div class="co">${esc(C.NAME)}</div><div class="co2">${esc(t("jcT").replace("📋 ",""))}</div></div></div>
  <div class="r"><div class="title">${esc(t("jcA4T"))}</div><table class="meta"><tr><td class="k">${esc(t("jcNo"))}</td><td id="jcA4No">${esc(j.no||j.id)}</td></tr><tr><td class="k">${esc(t("rsDate"))}</td><td>${esc(svDt(j.date))}</td></tr><tr><td class="k">${esc(t("rsSite"))}</td><td>${esc(site||"—")}</td></tr></table></div></div>
  <h2>${esc(t("jcSec1"))}</h2><table class="t" id="jcA4V"><thead><tr><th>${esc(t("rsUnit"))}</th><th>${esc(t("rsDesc"))}</th><th class="n">${esc(t("rsMeterAt"))}</th><th>${esc(t("rsBasis"))}</th><th class="n">${esc(t("jcNextAt"))}</th></tr></thead><tbody><tr><td class="id">${esc(j.fleet)}</td><td>${esc(j.name||veh.name||"")}</td><td class="n">${esc(j.meter===""||j.meter==null?"—":svNum(j.meter)+" "+svU(j.mu))}</td><td>${esc((j.unit==="m"?t("rsMon"):j.unit==="h"?t("rsHrs"):"km")+(j.every?" / "+svNum(j.every):""))}</td><td class="n">${esc(jcDueTxt(j.unit,j.due))}</td></tr></tbody></table>
  <h2>${esc(t("jcSec2"))}</h2><div class="notes" id="jcA4W">${esc(j.work)}</div><div class="note">${esc(t("rsDoneBy"))}: <b>${esc(j.by)}</b></div>
