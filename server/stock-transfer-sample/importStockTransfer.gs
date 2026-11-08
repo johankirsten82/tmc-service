@@ -16,12 +16,14 @@
  *   v1 says the binding still receives a credit after a rename, and does
  *   not say what a different unit means. This returns bad_request and does
  *   not add the quantity onto a line of another unit.
- * - The credit is Service's own received-stock line (kinds fsk / flc / fbd / ftr).
- *   It does not change part qty0, stock corrections, job cards, service due,
- *   or maintenance. A unique name+unit match stores the existing part id and
- *   copies the part number for display. It does not write the part row.
- *   If parts-store on-hand should increase, the contract needs to say so:
- *   that would change job-card stock checks.
+ * Usable stock is the existing total: opening qty0 + corrections − job-card use,
+ * plus Food line credits (flc). A receipt does not change qty0 or any old
+ * correction. A new Food item is a real part with opening 0, so job cards can
+ * select it. The same flc term has to be added to live stockMap_ when this
+ * receiver is deployed; v5 still sums only qty0 + corrections − job cards, so
+ * it would refuse a job that spends the received litres until that sum is there.
+ * Same transfer id with a different body returns bad_request, including after
+ * the receipt was applied. The same body returns duplicate.
  */
 var STOCK_APP_ID = 'tmcservice';
 var STOCK_IMPORT_PROP = 'STOCK_IMPORT_CODE';
@@ -30,7 +32,7 @@ var STOCK_QTY_SCALE = 3;
 var STOCK_ID = /^[A-Za-z0-9_-]{4,64}$/;
 var STOCK_QTY = /^(?:0|[1-9]\d{0,8})(?:\.\d{1,3})?$/;
 var STOCK_AT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$/;
-var STOCK_KINDS = { ftr: 1, fbd: 1, fsk: 1, flc: 1 };
+var STOCK_KINDS = { ftr: 1, fbd: 1, flc: 1, pt: 1 };
 
 function stockFold_(s) {
   return String(s || '').trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
@@ -57,18 +59,35 @@ function stockCanon_(t) {
     at: t.at, by: String(t.by).trim(), qtyScale: t.qtyScale, lines: lines
   });
 }
+function stockPart_(env, id) {
+  var row = env.get('pt', id);
+  if (row) return row;
+  var parts = env.parts ? env.parts() : [], i;
+  for (i = 0; i < parts.length; i++) if (parts[i] && String(parts[i].id) === String(id)) return parts[i];
+  return null;
+}
 function stockItems_(env) {
-  var bound = {}, items = [], parts = env.parts ? env.parts() : [];
-  env.list('fsk').forEach(function (s) { if (s && s.partId) bound[String(s.partId)] = 1; });
-  (parts || []).forEach(function (p) {
-    if (!p || p.id == null || bound[String(p.id)]) return;
-    items.push({ stockId: 'part_' + p.id, partId: String(p.id), pn: p.pn == null ? '' : String(p.pn), name: p.name == null ? '' : String(p.name), unit: p.unit == null ? '' : String(p.unit), from: 'part' });
-  });
-  env.list('fsk').forEach(function (s) {
-    if (!s) return;
-    items.push({ stockId: String(s.id), partId: s.partId ? String(s.partId) : '', pn: s.pn == null ? '' : String(s.pn), name: s.name == null ? '' : String(s.name), unit: s.unit == null ? '' : String(s.unit), from: 'fsk' });
-  });
+  var items = [], seen = {};
+  function add(p) {
+    if (!p || p.id == null || seen[String(p.id)]) return;
+    seen[String(p.id)] = 1;
+    items.push({ partId: String(p.id), pn: p.pn == null ? '' : String(p.pn), name: p.name == null ? '' : String(p.name), unit: p.unit == null ? '' : String(p.unit) });
+  }
+  (env.parts ? env.parts() : []).forEach(add);
+  env.list('pt').forEach(add);
   return items;
+}
+function stockNewId_(env, sourceItemId) {
+  if (!stockPart_(env, sourceItemId)) return sourceItemId;
+  if (!stockPart_(env, 'fi_' + sourceItemId)) return 'fi_' + sourceItemId;
+  return 'fi_' + sourceItemId + '_2';
+}
+function stockPn_(env, sourceItemId) {
+  var taken = {};
+  stockItems_(env).forEach(function (p) { if (p.pn) taken[p.pn] = 1; });
+  if (!taken[sourceItemId]) return sourceItemId;
+  var alt = ('fi-' + sourceItemId).slice(0, 60);
+  return taken[alt] ? sourceItemId : alt;
 }
 function stockPlan_(env, t) {
   var i, plan = [], items = stockItems_(env);
@@ -77,14 +96,15 @@ function stockPlan_(env, t) {
     var b = env.get('fbd', 'fi_' + l.sourceItemId), stock = null, created = null;
     if (b) {
       if (String(b.unit).trim() !== unit) return { ok: false, error: 'bad_request' };
-      stock = { stockId: String(b.stockId), partId: b.partId ? String(b.partId) : '', pn: b.pn == null ? '' : String(b.pn), name: b.name, unit: b.unit };
+      stock = { partId: String(b.partId), pn: b.pn == null ? '' : String(b.pn), name: b.name, unit: String(b.unit).trim() };
     } else {
       var hit = items.filter(function (it) { return stockFold_(it.name) === stockFold_(name) && String(it.unit).trim() === unit; });
       if (hit.length > 1) return { ok: false, error: 'ambiguous_item' };
       if (hit.length === 1) stock = hit[0];
       else {
-        created = { id: l.sourceItemId, name: name, unit: unit, pn: '', partId: '', sourceApp: STOCK_SOURCE_APP, sourceItemId: l.sourceItemId };
-        stock = { stockId: created.id, partId: '', pn: '', name: name, unit: unit, from: 'new' };
+        var nid = stockNewId_(env, l.sourceItemId);
+        created = { id: nid, pn: stockPn_(env, l.sourceItemId), name: name, unit: unit, qty0: 0, min: 0, sourceApp: STOCK_SOURCE_APP, sourceItemId: l.sourceItemId };
+        stock = { partId: nid, pn: created.pn, name: name, unit: unit };
         items.push(stock);
       }
     }
@@ -123,12 +143,13 @@ function stockWrite_(env, kind, id, data) { env.write(kind, id, data); }
 function credit_(env, req) {
   var t = req && req.transfer;
   var id = t && typeof t.id === 'string' ? t.id : '';
-  if (STOCK_ID.test(id)) {
-    var prev = env.get('ftr', id);
-    if (prev && prev.status === 'applied') return { ok: true, transferId: id, result: 'duplicate' };
-  }
+  var prev = STOCK_ID.test(id) ? env.get('ftr', id) : null;
   if (Object.keys(req).some(function (k) { return k !== 'action' && k !== 'code' && k !== 'transfer'; })) return { ok: false, error: 'bad_request' };
   var shape = stockShape_(t, env.appId || STOCK_APP_ID);
+  if (prev && prev.status === 'applied') {
+    if (!shape.ok || stockCanon_(t) !== prev.canon) return { ok: false, error: 'bad_request' };
+    return { ok: true, transferId: id, result: 'duplicate' };
+  }
   if (!shape.ok) return shape;
   var canon = stockCanon_(t);
   var open = env.get('ftr', t.id);
@@ -144,18 +165,12 @@ function credit_(env, req) {
     if (!step.bound && !env.get('fbd', 'fi_' + step.line.sourceItemId)) {
       stockWrite_(env, 'fbd', 'fi_' + step.line.sourceItemId, {
         id: 'fi_' + step.line.sourceItemId, sourceApp: STOCK_SOURCE_APP, sourceItemId: step.line.sourceItemId,
-        stockId: st.stockId, partId: st.partId || '', pn: st.pn || '', name: st.name, unit: st.unit
+        partId: st.partId, pn: st.pn || '', name: st.name, unit: st.unit
       });
     }
-    if (step.created && !env.get('fsk', step.created.id)) stockWrite_(env, 'fsk', step.created.id, step.created);
-    else if (st.from === 'part' && !env.get('fsk', st.stockId)) {
-      stockWrite_(env, 'fsk', st.stockId, {
-        id: st.stockId, name: st.name, unit: String(st.unit).trim(), pn: st.pn || '', partId: st.partId,
-        sourceApp: STOCK_SOURCE_APP, sourceItemId: step.line.sourceItemId
-      });
-    }
+    if (step.created && !env.get('pt', step.created.id)) stockWrite_(env, 'pt', step.created.id, step.created);
     if (!step.have) stockWrite_(env, 'flc', step.line.id, {
-      id: step.line.id, transferId: t.id, stockId: st.stockId, sourceItemId: step.line.sourceItemId,
+      id: step.line.id, transferId: t.id, pid: st.partId, sourceItemId: step.line.sourceItemId,
       sourceApp: STOCK_SOURCE_APP, qtyTh: step.th, name: step.name, unit: step.unit
     });
   });
@@ -178,10 +193,21 @@ function stockImportHandle_(env, req) {
   if (req.action !== 'importStockTransfer') return { ok: false, error: 'bad_request' };
   return importStockTransfer_(env, req);
 }
-function stockSumTh_(lines, stockId) {
-  var n = 0;
-  (lines || []).forEach(function (l) { if (l && String(l.stockId) === String(stockId)) n += l.qtyTh || 0; });
-  return n;
+function stockOnHandTh_(env, partId) {
+  var p = stockPart_(env, partId), th = p ? Math.round((Number(p.qty0) || 0) * 1000) : 0;
+  env.list('sc').forEach(function (c) { if (c && String(c.pid) === String(partId)) th += Math.round((Number(c.delta) || 0) * 1000); });
+  env.list('flc').forEach(function (l) { if (l && String(l.pid) === String(partId)) th += l.qtyTh || 0; });
+  env.list('jc').forEach(function (j) { (j && j.parts || []).forEach(function (l) { if (String(l.pid) === String(partId)) th -= Math.round((Number(l.qty) || 0) * 1000); }); });
+  return th;
+}
+/** One job-card use. Same job id does not deduct again. Not an import error code. */
+function stockConsume_(env, partId, qty, jcId) {
+  var need = stockQtyTh_(String(qty));
+  if (need == null) return { ok: false, error: 'bad_qty' };
+  if (env.get('jc', jcId)) return { ok: true, same: 1, onHandTh: stockOnHandTh_(env, partId) };
+  if (stockOnHandTh_(env, partId) < need) return { ok: false, blocked: 'stock', onHandTh: stockOnHandTh_(env, partId) };
+  env.write('jc', jcId, { id: jcId, parts: [{ pid: String(partId), qty: need / 1000 }] });
+  return { ok: true, onHandTh: stockOnHandTh_(env, partId) };
 }
 
 /* Sheet glue for a later approved deploy into THIS app's script. Not wired to live v5. */
@@ -240,5 +266,5 @@ function stockSheetEnv_() {
 function importStockTransfer(req) { return stockImportHandle_(stockSheetEnv_(), req); }
 if (typeof module !== 'undefined') module.exports = {
   importStockTransfer_: importStockTransfer_, stockImportHandle_: stockImportHandle_,
-  stockQtyTh_: stockQtyTh_, stockFold_: stockFold_, stockSumTh_: stockSumTh_, STOCK_APP_ID: STOCK_APP_ID
+  stockQtyTh_: stockQtyTh_, stockFold_: stockFold_, stockOnHandTh_: stockOnHandTh_, stockConsume_: stockConsume_, STOCK_APP_ID: STOCK_APP_ID
 };

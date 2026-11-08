@@ -64,9 +64,7 @@ function transfer(over) {
 function req(t, code) {
   return { action: 'importStockTransfer', code: code || SERVICE, transfer: t || transfer() };
 }
-function qty(e, stockId) {
-  return api.stockSumTh_(e.list('flc'), stockId);
-}
+function hand(e, partId) { return api.stockOnHandTh_(e, partId); }
 function kinds(e) {
   return Object.keys(e.rows).map(function (k) { return k.split(':')[0]; }).filter(function (k, i, a) { return a.indexOf(k) === i; }).sort();
 }
@@ -99,16 +97,19 @@ t('decimal quantities and part-number preservation', function () {
   });
   const a = api.stockImportHandle_(e, req(body));
   assert.strictEqual(a.result, 'accepted');
-  assert.strictEqual(qty(e, 'foodrice25'), 1500);
-  assert.strictEqual(qty(e, 'part_p100'), 1250);
-  assert.strictEqual(qty(e, 'part_p200'), 1250);
-  const oilLine = e.get('fsk', 'part_p100');
-  assert.strictEqual(oilLine.pn, 'P-100');
-  assert.strictEqual(oilLine.partId, 'p100');
-  assert.strictEqual(e.get('fsk', 'part_p200').pn, 'P-200');
-  assert.strictEqual(e.get('fsk', 'foodrice25').pn, '');
+  assert.strictEqual(hand(e, 'foodrice25'), 1500);
+  assert.strictEqual(hand(e, 'p100'), 5250);
+  assert.strictEqual(hand(e, 'p200'), 2250);
+  assert.strictEqual(e.get('fbd', 'fi_foodoil88').pn, 'P-100');
+  assert.strictEqual(e.get('fbd', 'fi_foodoil88').partId, 'p100');
+  assert.strictEqual(e.get('fbd', 'fi_foodcafe01').pn, 'P-200');
+  assert.strictEqual(e.get('pt', 'foodrice25').qty0, 0);
+  assert.strictEqual(e.get('pt', 'foodrice25').unit, 'kg');
+  assert.strictEqual(e.get('pt', 'foodrice25').pn, 'foodrice25');
+  assert.ok(!e.get('pt', 'p100'));
+  assert.strictEqual(e.list('sc').length, 0);
   assert.strictEqual(JSON.stringify(e.partsLive), before);
-  assert.deepStrictEqual(kinds(e), ['fbd', 'flc', 'fsk', 'ftr']);
+  assert.deepStrictEqual(kinds(e), ['fbd', 'flc', 'ftr', 'pt']);
 });
 
 t('repeated transfer is duplicate and an altered body does not credit again', function () {
@@ -121,11 +122,11 @@ t('repeated transfer is duplicate and an altered body does not credit again', fu
   assert.strictEqual(api.stockImportHandle_(e, req(again)).result, 'duplicate');
   const altered = transfer({ lines: [line('lineRice01', 'foodrice25', 'SAMPLE Rice 25kg', 'kg', '9.5')] });
   const d = api.stockImportHandle_(e, req(altered));
-  assert.strictEqual(d.result, 'duplicate');
-  assert.strictEqual(qty(e, 'foodrice25'), 1250);
+  assert.strictEqual(d.error, 'bad_request');
+  assert.strictEqual(hand(e, 'foodrice25'), 1250);
   assert.strictEqual(e.writes.length, n);
   assert.strictEqual(api.stockImportHandle_(e, { action: 'importStockTransfer', code: 'nope', transfer: altered }).error, 'bad_code');
-  assert.strictEqual(qty(e, 'foodrice25'), 1250);
+  assert.strictEqual(hand(e, 'foodrice25'), 1250);
 });
 
 t('altered payload while the first attempt is open writes nothing further', function () {
@@ -141,9 +142,9 @@ t('altered payload while the first attempt is open writes nothing further', func
   assert.strictEqual(e.list('flc').length, 0);
   e.setCrash(null);
   assert.strictEqual(api.stockImportHandle_(e, req(transfer())).result, 'accepted');
-  assert.strictEqual(qty(e, 'foodrice25'), 1250);
+  assert.strictEqual(hand(e, 'foodrice25'), 1250);
   assert.strictEqual(api.stockImportHandle_(e, req(transfer())).result, 'duplicate');
-  assert.strictEqual(qty(e, 'foodrice25'), 1250);
+  assert.strictEqual(hand(e, 'foodrice25'), 1250);
 });
 
 t('crash after the line credit still resumes once when the lock is gone', function () {
@@ -157,11 +158,11 @@ t('crash after the line credit still resumes once when the lock is gone', functi
   e.setCrash(null);
   const writes = e.writes.length;
   assert.strictEqual(api.stockImportHandle_(e, req(transfer())).result, 'accepted');
-  assert.strictEqual(qty(e, 'foodrice25'), 1250);
+  assert.strictEqual(hand(e, 'foodrice25'), 1250);
   assert.ok(e.writes.length > writes);
   assert.strictEqual(e.get('ftr', 'trsf1001').status, 'applied');
   assert.strictEqual(api.stockImportHandle_(e, req(transfer())).result, 'duplicate');
-  assert.strictEqual(qty(e, 'foodrice25'), 1250);
+  assert.strictEqual(hand(e, 'foodrice25'), 1250);
 });
 
 t('two recipients reject the other app and do not share rows', function () {
@@ -173,8 +174,8 @@ t('two recipients reject the other app and do not share rows', function () {
   assert.strictEqual(Object.keys(workshop.rows).length, 0);
   assert.strictEqual(api.stockImportHandle_(service, req(transfer())).result, 'accepted');
   assert.strictEqual(api.stockImportHandle_(workshop, req(transfer({ destinationApp: WORKSHOP_APP }), WORKSHOP)).result, 'accepted');
-  assert.strictEqual(qty(service, 'foodrice25'), 1250);
-  assert.strictEqual(qty(workshop, 'foodrice25'), 1250);
+  assert.strictEqual(hand(service, 'foodrice25'), 1250);
+  assert.strictEqual(hand(workshop, 'foodrice25'), 1250);
   assert.notStrictEqual(service.rows['flc:lineRice01'], workshop.rows['flc:lineRice01']);
   assert.strictEqual(service.get('ftr', 'trsf1001').destinationApp, 'tmcservice');
   assert.strictEqual(workshop.get('ftr', 'trsf1001').destinationApp, WORKSHOP_APP);
@@ -193,10 +194,12 @@ t('ambiguous same-name items write nothing; a different unit does not bind', fun
   const before = JSON.stringify(other.partsLive);
   const own = api.stockImportHandle_(other, req(transfer({ lines: [line('lineBag001', 'foodbag001', 'SAMPLE Rice 25kg', 'bag', '2')] })));
   assert.strictEqual(own.result, 'accepted');
-  assert.strictEqual(other.get('fsk', 'foodbag001').partId, '');
-  assert.strictEqual(other.get('fsk', 'foodbag001').pn, '');
+  assert.strictEqual(other.get('pt', 'foodbag001').qty0, 0);
+  assert.strictEqual(other.get('pt', 'foodbag001').unit, 'bag');
+  assert.strictEqual(hand(other, 'foodbag001'), 2000);
+  assert.strictEqual(hand(other, 'p1'), 3000);
   assert.strictEqual(JSON.stringify(other.partsLive), before);
-  assert.ok(!other.get('fsk', 'part_p1'));
+  assert.ok(!other.get('pt', 'p1'));
 });
 
 t('unit change on a bound Food item is refused and the first credit stays', function () {
@@ -207,15 +210,16 @@ t('unit change on a bound Food item is refused and the first credit stays', func
     lines: [line('lineRice99', 'foodrice25', 'Renamed rice', 'bag', '3')]
   });
   assert.strictEqual(api.stockImportHandle_(e, req(next)).error, 'bad_request');
-  assert.strictEqual(qty(e, 'foodrice25'), 1250);
-  assert.strictEqual(e.list('fsk').length, 1);
+  assert.strictEqual(hand(e, 'foodrice25'), 1250);
+  assert.strictEqual(e.list('pt').length, 1);
   const same = transfer({
     id: 'trsf1003', sourceIssueId: 'trsf1003',
     lines: [line('lineRice77', 'foodrice25', 'Renamed rice', 'kg', '1')]
   });
   assert.strictEqual(api.stockImportHandle_(e, req(same)).result, 'accepted');
-  assert.strictEqual(qty(e, 'foodrice25'), 2250);
-  assert.strictEqual(e.get('fsk', 'foodrice25').name, 'SAMPLE Rice 25kg');
+  assert.strictEqual(hand(e, 'foodrice25'), 2250);
+  assert.strictEqual(e.get('pt', 'foodrice25').name, 'SAMPLE Rice 25kg');
+  assert.strictEqual(e.get('pt', 'foodrice25').qty0, 0);
   assert.strictEqual(e.get('fbd', 'fi_foodrice25').unit, 'kg');
 });
 
@@ -242,11 +246,87 @@ t('bad quantities, source identity, and the import code cannot run another actio
   assert.strictEqual(e.partsLive[0].pn, 'P-100');
 });
 
-t('frontend received-stock sample does not change parts math', function () {
-  assert.ok(html.includes('function stStock(pid){const p=stPart(pid);let q=p?(+p.qty0||0):0;all("sc").forEach'));
+t('P-100 opening 4 L plus accepted 2 L is usable 6, then one use leaves 5', function () {
+  const oil = { id: 'p100', pn: 'P-100', name: 'SAMPLE Hydraulic oil', unit: 'L', qty0: 4, min: 1 };
+  const e = env({ parts: [oil] });
+  const before = JSON.stringify(e.partsLive);
+  const body = transfer({ lines: [line('lineOil001', 'foodoil88', 'SAMPLE Hydraulic oil', 'L', '2')] });
+  assert.strictEqual(api.stockImportHandle_(e, req(body)).result, 'accepted');
+  assert.strictEqual(hand(e, 'p100'), 6000);
+  assert.strictEqual(e.partsLive[0].qty0, 4);
+  assert.strictEqual(e.partsLive[0].pn, 'P-100');
+  assert.strictEqual(JSON.stringify(e.partsLive), before);
+  assert.strictEqual(e.list('sc').length, 0);
+  assert.ok(!e.get('pt', 'p100'));
+  assert.strictEqual(api.stockImportHandle_(e, req(body)).result, 'duplicate');
+  assert.strictEqual(hand(e, 'p100'), 6000);
+  const altered = transfer({ lines: [line('lineOil001', 'foodoil88', 'SAMPLE Hydraulic oil', 'L', '9')] });
+  assert.strictEqual(api.stockImportHandle_(e, req(altered)).error, 'bad_request');
+  assert.strictEqual(hand(e, 'p100'), 6000);
+  assert.strictEqual(api.stockConsume_(e, 'p100', '1', 'job1').onHandTh, 5000);
+  assert.strictEqual(api.stockConsume_(e, 'p100', '1', 'job1').same, 1);
+  assert.strictEqual(hand(e, 'p100'), 5000);
+  const blocked = api.stockConsume_(e, 'p100', '6', 'job2');
+  assert.strictEqual(blocked.blocked, 'stock');
+  assert.ok(!e.get('jc', 'job2'));
+  assert.strictEqual(hand(e, 'p100'), 5000);
+});
+
+t('a new Food item is usable stock with opening 0 and its own unit', function () {
+  const e = env();
+  assert.strictEqual(api.stockImportHandle_(e, req(transfer())).result, 'accepted');
+  const p = e.get('pt', 'foodrice25');
+  assert.strictEqual(p.qty0, 0);
+  assert.strictEqual(p.unit, 'kg');
+  assert.strictEqual(p.pn, 'foodrice25');
+  assert.ok(!p.veh);
+  assert.strictEqual(hand(e, 'foodrice25'), 1250);
+  assert.strictEqual(api.stockConsume_(e, 'foodrice25', '0.25', 'jobR').onHandTh, 1000);
+  const blocked = api.stockConsume_(e, 'foodrice25', '2', 'jobR2');
+  assert.strictEqual(blocked.blocked, 'stock');
+  assert.strictEqual(hand(e, 'foodrice25'), 1000);
+});
+
+t('Service and Workshop stock stay isolated, including on hand', function () {
+  const oil = { id: 'p100', pn: 'P-100', name: 'SAMPLE Hydraulic oil', unit: 'L', qty0: 4 };
+  const service = env({ parts: [oil] });
+  const workshop = env({ appId: WORKSHOP_APP, code: WORKSHOP, parts: [JSON.parse(JSON.stringify(oil))] });
+  const body = transfer({ lines: [line('lineOil001', 'foodoil88', 'SAMPLE Hydraulic oil', 'L', '2')] });
+  assert.strictEqual(api.stockImportHandle_(service, req(body)).result, 'accepted');
+  assert.strictEqual(hand(service, 'p100'), 6000);
+  assert.strictEqual(hand(workshop, 'p100'), 4000);
+  assert.strictEqual(workshop.list('flc').length, 0);
+  assert.strictEqual(workshop.partsLive[0].qty0, 4);
+});
+
+t('interruption while crediting an existing part does not double the litres', function () {
+  const oil = { id: 'p100', pn: 'P-100', name: 'SAMPLE Hydraulic oil', unit: 'L', qty0: 4 };
+  const e = env({ parts: [oil], crashAt: 3 });
+  const body = transfer({ lines: [line('lineOil001', 'foodoil88', 'SAMPLE Hydraulic oil', 'L', '2')] });
+  let threw = false;
+  try { api.stockImportHandle_(e, req(body)); } catch (err) { threw = err.message === 'interrupted'; }
+  assert.strictEqual(threw, true);
+  assert.strictEqual(e.locked(), false);
+  assert.strictEqual(e.get('flc', 'lineOil001').qtyTh, 2000);
+  assert.strictEqual(hand(e, 'p100'), 6000);
+  assert.strictEqual(e.partsLive[0].qty0, 4);
+  e.setCrash(null);
+  assert.strictEqual(api.stockImportHandle_(e, req(body)).result, 'accepted');
+  assert.strictEqual(hand(e, 'p100'), 6000);
+  assert.strictEqual(api.stockImportHandle_(e, req(body)).result, 'duplicate');
+  assert.strictEqual(hand(e, 'p100'), 6000);
+  assert.strictEqual(e.list('flc').length, 1);
+  assert.strictEqual(e.list('sc').length, 0);
+});
+
+t('frontend on-hand includes Food credits and still keeps opening qty0', function () {
+  assert.ok(html.includes('all("sc").forEach'));
+  assert.ok(html.includes('all("flc").forEach'));
+  assert.ok(html.includes('all("jc").forEach'));
+  assert.ok(html.includes('qty0'));
+  assert.ok(html.includes('Usable on job cards'));
   assert.ok(html.includes('id="foodStock"'));
   assert.ok(html.includes('SAMPLE Rice 25kg'));
-  assert.ok(html.includes('SAMPLE — not live stock') || html.includes('foodSample'));
   assert.ok(html.includes('#sample-food-stock'));
   assert.ok(html.includes('if(!window.TMC.foodStockSample)'));
   assert.ok(!html.includes('importStockTransfer'));
