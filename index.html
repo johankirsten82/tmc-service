@@ -1298,8 +1298,46 @@ Object.assign(T.fr,{cmT:"🔔 Vérifier la machine (consommation élevée)",cmRa
 Object.assign(T.ar,{cmT:"🔔 فحص الآلة (استهلاك وقود مرتفع)",cmRate:"⛽ %a لتر/س (المعتاد %b)",cmDone:"✅ تم",cmSure:"تم فحص الآلة؟ سيظهر ✅ في تطبيق الوقود."});
 {const st=document.createElement("style");st.textContent=".cmBox{border:3px solid #dc2626}.cmBox h3{color:#b91c1c}.cmRow{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px solid #eee}.cmRow>div{flex:1}.cmRow button{flex:none;white-space:nowrap;min-height:48px;padding:0 14px;font-weight:800;border-radius:10px}";document.head.appendChild(st)}
 Object.assign(window.TMC,{cmOpen:cmOpen});
+/* SAMPLE food stock — contract v1 receiver display. Not a live import.
+   The phone has no receiver URL and no import code. Hash #sample-food-stock
+   shows marked sample rows in this tab only and does not call the Sheet. */
+Object.assign(T.en,{foodin:"Received",foodT:"Received stock",foodH:"Food issues credited to this Service app only. Workshop is a different app.",foodNone:"No Food stock received.",foodOwn:"Own line",foodPn:"Part no",foodPnKeep:"part number unchanged",foodFrom:"From Food",foodItem:"Food item",foodRec:"Receipts",foodOnce:"Credited once",foodParts:"Parts store on hand",foodPartsKeep:"not changed by Food receipts",foodSample:"SAMPLE — not live stock",foodApp:"Service app tmcservice"});
+Object.assign(T.fr,{foodin:"Reçu",foodT:"Stock reçu",foodH:"Issues Food crédités seulement à cette app Service. Workshop est une autre app.",foodNone:"Aucun stock Food reçu.",foodOwn:"Ligne propre",foodPn:"N° pièce",foodPnKeep:"n° de pièce inchangé",foodFrom:"Venant de Food",foodItem:"Article Food",foodRec:"Reçus",foodOnce:"Crédité une fois",foodParts:"Stock pièces",foodPartsKeep:"inchangé par les reçus Food",foodSample:"SAMPLE — pas du stock réel",foodApp:"App Service tmcservice"});
+Object.assign(T.ar,{foodin:"الوارد",foodT:"المخزون الوارد",foodH:"وارد Food يُحسب لهذا التطبيق فقط. Workshop تطبيق آخر.",foodNone:"لا يوجد مخزون Food وارد.",foodOwn:"سطر خاص",foodPn:"رقم القطعة",foodPnKeep:"رقم القطعة لم يتغير",foodFrom:"من Food",foodItem:"صنف Food",foodRec:"إيصالات",foodOnce:"قُيّد مرة واحدة",foodParts:"مخزون القطع",foodPartsKeep:"لم يتغير بإيصالات Food",foodSample:"SAMPLE — ليس مخزوناً حياً",foodApp:"تطبيق Service tmcservice"});
+function foodThMap(){const m={};all("flc").forEach(l=>{if(l&&l.stockId)m[l.stockId]=(m[l.stockId]||0)+(+l.qtyTh||0)});return m}
+function foodFmtTh(th){th=Math.round(+th||0);const s=String(Math.abs(th)).padStart(4,"0");return (th<0?"-":"")+parseInt(s.slice(0,-3),10)+"."+s.slice(-3)}
+function foodStockSampleOn(){return /(?:^#|&)sample-food-stock(?:&|$)/.test(location.hash||"")}
+function foodStockSampleLoad(){
+  if(!foodStockSampleOn())return;
+  lang="en";L.set("lang","en");
+  const pinH="sample",u={id:"sampleclerk",name:"SAMPLE Clerk",status:"active",admin:0,perms:[],pinH:pinH,salt:"sample"};
+  R["u:"+u.id]={kind:"u",id:u.id,u:1,del:0,data:u};
+  const putS=(kind,id,data)=>{R[kind+":"+id]={kind:kind,id:id,u:1,del:0,data:data}};
+  putS("pt","p100",{id:"p100",pn:"P-100",name:"SAMPLE Hydraulic oil",unit:"L",qty0:4,min:1,veh:["*"],sample:1});
+  putS("fsk","foodrice25",{id:"foodrice25",name:"SAMPLE Rice 25kg",unit:"kg",pn:"",partId:"",sourceApp:"fi",sourceItemId:"foodrice25",sample:1});
+  putS("fsk","part_p100",{id:"part_p100",name:"SAMPLE Hydraulic oil",unit:"L",pn:"P-100",partId:"p100",sourceApp:"fi",sourceItemId:"foodoil88",sample:1});
+  putS("flc","lineRice01",{id:"lineRice01",transferId:"SAMPLETR1001",stockId:"foodrice25",sourceItemId:"foodrice25",sourceApp:"fi",qtyTh:1250,name:"SAMPLE Rice 25kg",unit:"kg",sample:1});
+  putS("flc","lineOil001",{id:"lineOil001",transferId:"SAMPLETR1001",stockId:"part_p100",sourceItemId:"foodoil88",sourceApp:"fi",qtyTh:2000,name:"SAMPLE Hydraulic oil",unit:"L",sample:1});
+  putS("ftr","SAMPLETR1001",{id:"SAMPLETR1001",status:"applied",at:"2026-11-08T11:31:00.000Z",by:"SAMPLE Staff",sourceApp:"fi",destinationApp:C.APP_ID,lineIds:["lineRice01","lineOil001"],sample:1});
+  L.set("uid",u.id);L.set("uok",u.id+":"+pinH);L.del("tok");
+  window.TMC.foodStockSample=1;tab="foodin";
+}
+function foodInHTML(){
+  const rows=all("fsk").slice().sort((a,b)=>String(a.name).localeCompare(String(b.name))),th=foodThMap(),sample=!!window.TMC.foodStockSample||rows.some(r=>r.sample);
+  const cards=rows.map(r=>{const q=foodFmtTh(th[r.id]||0),own=!r.pn;
+    return `<article class="stIt foodCard" data-stock="${esc(r.id)}"><div class="nm"><b>${esc(r.name)}</b></div><div class="foodQty">${esc(q)} ${esc(r.unit||"")}</div><div class="foodMeta">${own?esc(t("foodOwn")):esc(t("foodPn"))+" "+esc(r.pn)+" · "+esc(t("foodPnKeep"))}</div><div class="foodMeta">${esc(t("foodItem"))}: ${esc(r.sourceItemId||r.id)} · ${esc(t("foodFrom"))} (${esc(r.sourceApp||"fi")})</div></article>`}).join("");
+  const bound=all("fsk").filter(r=>r.partId&&stPart(r.partId));
+  const parts=bound.map(r=>{const p=stPart(r.partId);return `<p class="foodMeta" data-part="${esc(p.id)}">${esc(t("foodParts"))} ${esc(p.pn)}: <b>${esc(stStock(p.id))} ${esc(p.unit||"")}</b> — ${esc(t("foodPartsKeep"))}</p>`}).join("");
+  const rec=all("ftr").filter(r=>r.status==="applied").map(r=>{const ids=(r.lineIds||all("flc").filter(l=>l.transferId===r.id).map(l=>l.id)).join(", ");
+    return `<article class="stIt" data-tr="${esc(r.id)}"><div class="nm"><b>${esc(r.id)}</b></div><div class="foodMeta">${esc(t("foodOnce"))} · ${esc(r.by||"")}</div><div class="foodMeta">${esc(String(r.at||"").replace("T"," ").replace(".000Z"," UTC"))}</div><div class="foodMeta">${esc(ids)}</div></article>`}).join("");
+  return `<div id="foodStock">${sample?`<p class="foodBan" id="foodSample">${esc(t("foodSample"))}</p>`:""}<div class="box"><h2>${esc(t("foodT"))}</h2><p class="hint">${esc(t("foodH"))}</p><p class="hint">${esc(t("foodApp"))}</p>${cards||`<p class="hint" id="foodNone">${esc(t("foodNone"))}</p>`}${parts}</div><div class="box"><h2>${esc(t("foodRec"))}</h2>${rec||`<p class="hint">${esc(t("foodNone"))}</p>`}</div></div>`;
+}
+{const tabs0=window.TMC.appTabs;window.TMC.appTabs=function(u){return (tabs0?tabs0(u):[]).concat([["foodin","📥"]])};
+ window.TMC.appViews=window.TMC.appViews||{};window.TMC.appViews.foodin={html:foodInHTML,bind:function(){}};}
+{const st=document.createElement("style");st.textContent=".foodBan{background:#fef3c7;color:#92400e;border:2px solid #d97706;border-radius:12px;padding:10px 12px;margin:0 0 10px;font-weight:800;font-size:16px}.foodCard{border-left-color:#1d4ed8}.foodQty{font-size:28px;font-weight:800;letter-spacing:.3px}.foodMeta{font-size:16px;color:#334155;margin-top:4px}";document.head.appendChild(st)}
+foodStockSampleLoad();
 render();
-if(syncOn())syncNow();else if(sUrl())api({action:"status",name:"-"}).catch(()=>{});  // probe so "Not connected" shows on a fresh phone too
+if(!window.TMC.foodStockSample){if(syncOn())syncNow();else if(sUrl())api({action:"status",name:"-"}).catch(()=>{})}  // sample hash must not call the live Sheet
 })();
 /* SPELLCHECK START — phone spellcheck on every free-text box (names, items, notes).
    Never on PIN / number / sync / code / masked fields. Covers boxes built later too. */
