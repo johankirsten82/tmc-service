@@ -319,17 +319,23 @@ t('interruption while crediting an existing part does not double the litres', fu
   assert.strictEqual(e.list('sc').length, 0);
 });
 
-t('frontend on-hand includes Food credits and still keeps opening qty0', function () {
+t('frontend on-hand includes Food credits and the sample screen is staff-facing', function () {
   assert.ok(html.includes('all("sc").forEach'));
   assert.ok(html.includes('all("flc").forEach'));
   assert.ok(html.includes('all("jc").forEach'));
   assert.ok(html.includes('qty0'));
-  assert.ok(html.includes('Usable on job cards'));
+  assert.ok(html.includes('function foodWhen'));
+  assert.ok(html.includes('WAT'));
+  assert.ok(html.includes('SAMPLE Steel rope'));
+  assert.ok(html.includes('SAMPLE Hydraulic oil'));
+  assert.ok(!html.includes('SAMPLE Rice'));
+  assert.ok(!html.includes('Service app tmcservice'));
+  assert.ok(!html.includes('Usable on job cards'));
   assert.ok(html.includes('id="foodStock"'));
-  assert.ok(html.includes('SAMPLE Rice 25kg'));
   assert.ok(html.includes('#sample-food-stock'));
   assert.ok(html.includes('if(!window.TMC.foodStockSample)'));
   assert.ok(!html.includes('importStockTransfer'));
+  assert.ok(html.includes('2026-11-08T11:31:00.000Z'));
 });
 
 const failed = results.filter(function (r) { return r.indexOf('FAIL') === 0; });

@@ -1301,10 +1301,11 @@ Object.assign(window.TMC,{cmOpen:cmOpen});
 /* SAMPLE food stock — contract v1 receiver display. Not a live import.
    The phone has no receiver URL and no import code. Hash #sample-food-stock
    shows marked sample rows in this tab only and does not call the Sheet. */
-Object.assign(T.en,{foodin:"Received",foodT:"Received stock",foodH:"Accepted Food is usable Service stock. A job deducts it once. Workshop is a different app.",foodNone:"No Food stock received.",foodUse:"Usable on job cards",foodOpen:"Opening",foodOpenKeep:"opening quantity unchanged",foodGot:"Received",foodPn:"Part no",foodFrom:"From Food",foodItem:"Food item",foodRec:"Receipts",foodOnce:"Credited once",foodSample:"SAMPLE — not live stock",foodApp:"Service app tmcservice"});
-Object.assign(T.fr,{foodin:"Reçu",foodT:"Stock reçu",foodH:"Le Food accepté est du stock Service utilisable. Un bon le déduit une fois. Workshop est une autre app.",foodNone:"Aucun stock Food reçu.",foodUse:"Utilisable sur les fiches",foodOpen:"Ouverture",foodOpenKeep:"quantité d'ouverture inchangée",foodGot:"Reçu",foodPn:"N° pièce",foodFrom:"Venant de Food",foodItem:"Article Food",foodRec:"Reçus",foodOnce:"Crédité une fois",foodSample:"SAMPLE — pas du stock réel",foodApp:"App Service tmcservice"});
-Object.assign(T.ar,{foodin:"الوارد",foodT:"المخزون الوارد",foodH:"وارد Food المقبول مخزون خدمة قابل للاستخدام. بطاقة العمل تخصمه مرة واحدة. Workshop تطبيق آخر.",foodNone:"لا يوجد مخزون Food وارد.",foodUse:"قابل للاستخدام في بطاقات العمل",foodOpen:"الرصيد الافتتاحي",foodOpenKeep:"الرصيد الافتتاحي لم يتغير",foodGot:"الوارد",foodPn:"رقم القطعة",foodFrom:"من Food",foodItem:"صنف Food",foodRec:"إيصالات",foodOnce:"قُيّد مرة واحدة",foodSample:"SAMPLE — ليس مخزوناً حياً",foodApp:"تطبيق Service tmcservice"});
+Object.assign(T.en,{foodin:"Received",foodT:"Received stock",foodNone:"No Food stock received.",foodPn:"Part no",foodFrom:"Food",foodRec:"Receipts",foodSample:"SAMPLE — not live stock"});
+Object.assign(T.fr,{foodin:"Reçu",foodT:"Stock reçu",foodNone:"Aucun stock Food reçu.",foodPn:"N° pièce",foodFrom:"Food",foodRec:"Reçus",foodSample:"SAMPLE — pas du stock réel"});
+Object.assign(T.ar,{foodin:"الوارد",foodT:"المخزون الوارد",foodNone:"لا يوجد مخزون وارد.",foodPn:"رقم القطعة",foodFrom:"Food",foodRec:"إيصالات",foodSample:"SAMPLE — ليس مخزوناً حياً"});
 function foodFmtTh(th){th=Math.round(+th||0);const s=String(Math.abs(th)).padStart(4,"0");return (th<0?"-":"")+parseInt(s.slice(0,-3),10)+"."+s.slice(-3)}
+function foodWhen(iso){const s=chadDT(iso);return s?s+" WAT":""}
 function foodStockSampleOn(){return /(?:^#|&)sample-food-stock(?:&|$)/.test(location.hash||"")}
 function foodStockSampleLoad(){
   if(!foodStockSampleOn())return;
@@ -1313,10 +1314,10 @@ function foodStockSampleLoad(){
   R["u:"+u.id]={kind:"u",id:u.id,u:1,del:0,data:u};
   const putS=(kind,id,data)=>{R[kind+":"+id]={kind:kind,id:id,u:1,del:0,data:data}};
   putS("pt","p100",{id:"p100",pn:"P-100",name:"SAMPLE Hydraulic oil",unit:"L",qty0:4,min:1,veh:["*"],sample:1});
-  putS("pt","foodrice25",{id:"foodrice25",pn:"foodrice25",name:"SAMPLE Rice 25kg",unit:"kg",qty0:0,min:0,sample:1});
-  putS("flc","lineRice01",{id:"lineRice01",transferId:"SAMPLETR1001",pid:"foodrice25",sourceItemId:"foodrice25",sourceApp:"fi",qtyTh:1250,name:"SAMPLE Rice 25kg",unit:"kg",sample:1});
+  putS("pt","steelrope",{id:"steelrope",pn:"SR-10",name:"SAMPLE Steel rope",unit:"m",qty0:0,min:0,veh:["*"],sample:1});
+  putS("flc","lineRope01",{id:"lineRope01",transferId:"SAMPLETR1001",pid:"steelrope",sourceItemId:"foodrope01",sourceApp:"fi",qtyTh:3000,name:"SAMPLE Steel rope",unit:"m",sample:1});
   putS("flc","lineOil001",{id:"lineOil001",transferId:"SAMPLETR1001",pid:"p100",sourceItemId:"foodoil88",sourceApp:"fi",qtyTh:2000,name:"SAMPLE Hydraulic oil",unit:"L",sample:1});
-  putS("ftr","SAMPLETR1001",{id:"SAMPLETR1001",status:"applied",at:"2026-11-08T11:31:00.000Z",by:"SAMPLE Staff",sourceApp:"fi",destinationApp:C.APP_ID,lineIds:["lineRice01","lineOil001"],sample:1});
+  putS("ftr","SAMPLETR1001",{id:"SAMPLETR1001",status:"applied",at:"2026-11-08T11:31:00.000Z",by:"SAMPLE Staff",sourceApp:"fi",destinationApp:C.APP_ID,lineIds:["lineOil001","lineRope01"],sample:1});
   L.set("uid",u.id);L.set("uok",u.id+":"+pinH);L.del("tok");
   window.TMC.foodStockSample=1;tab="foodin";
 }
@@ -1324,11 +1325,9 @@ function foodInHTML(){
   const ids=[];all("flc").forEach(l=>{const id=l&&String(l.pid||"");if(id&&ids.indexOf(id)<0)ids.push(id)});
   const rows=ids.map(stPart).filter(Boolean).sort((a,b)=>String(a.name).localeCompare(String(b.name)));
   const sample=!!window.TMC.foodStockSample||rows.some(r=>r.sample);
-  const cards=rows.map(p=>{const got=all("flc").filter(l=>String(l.pid)===String(p.id)).reduce((a,l)=>a+(+l.qtyTh||0),0),src=all("flc").find(l=>String(l.pid)===String(p.id))||{};
-    return `<article class="stIt foodCard" data-stock="${esc(p.id)}"><div class="nm"><b>${esc(p.name)}</b></div><div class="foodQty">${esc(foodFmtTh(Math.round(stStock(p.id)*1000)))} ${esc(p.unit||"")}</div><div class="foodMeta">${esc(t("foodUse"))}</div><div class="foodMeta">${esc(t("foodOpen"))} ${esc(p.qty0)} ${esc(p.unit||"")} · ${esc(t("foodOpenKeep"))}</div><div class="foodMeta">${esc(t("foodGot"))} ${esc(foodFmtTh(got))} ${esc(src.unit||p.unit||"")}</div><div class="foodMeta">${esc(t("foodPn"))} ${esc(p.pn)} · ${esc(t("foodItem"))}: ${esc(src.sourceItemId||p.id)} · ${esc(t("foodFrom"))} (${esc(src.sourceApp||"fi")})</div></article>`}).join("");
-  const rec=all("ftr").filter(r=>r.status==="applied").map(r=>{const ids=(r.lineIds||all("flc").filter(l=>l.transferId===r.id).map(l=>l.id)).join(", ");
-    return `<article class="stIt" data-tr="${esc(r.id)}"><div class="nm"><b>${esc(r.id)}</b></div><div class="foodMeta">${esc(t("foodOnce"))} · ${esc(r.by||"")}</div><div class="foodMeta">${esc(String(r.at||"").replace("T"," ").replace(".000Z"," UTC"))}</div><div class="foodMeta">${esc(ids)}</div></article>`}).join("");
-  return `<div id="foodStock">${sample?`<p class="foodBan" id="foodSample">${esc(t("foodSample"))}</p>`:""}<div class="box"><h2>${esc(t("foodT"))}</h2><p class="hint">${esc(t("foodH"))}</p><p class="hint">${esc(t("foodApp"))}</p>${cards||`<p class="hint" id="foodNone">${esc(t("foodNone"))}</p>`}</div><div class="box"><h2>${esc(t("foodRec"))}</h2>${rec||`<p class="hint">${esc(t("foodNone"))}</p>`}</div></div>`;
+  const cards=rows.map(p=>`<article class="stIt foodCard" data-stock="${esc(p.id)}"><div class="nm"><b>${esc(p.name)}</b></div><div class="foodQty">${esc(foodFmtTh(Math.round(stStock(p.id)*1000)))} ${esc(p.unit||"")}</div><div class="foodMeta">${esc(t("foodPn"))} ${esc(p.pn)} · ${esc(t("foodFrom"))}</div></article>`).join("");
+  const rec=all("ftr").filter(r=>r.status==="applied").map(r=>`<article class="stIt" data-tr="${esc(r.id)}"><div class="nm"><b>${esc(r.id)}</b></div><div class="foodMeta">${esc(foodWhen(r.at))}${r.by?" · "+esc(r.by):""}</div></article>`).join("");
+  return `<div id="foodStock">${sample?`<p class="foodBan" id="foodSample">${esc(t("foodSample"))}</p>`:""}<div class="box"><h2>${esc(t("foodT"))}</h2>${cards||`<p class="hint" id="foodNone">${esc(t("foodNone"))}</p>`}</div><div class="box"><h2>${esc(t("foodRec"))}</h2>${rec||`<p class="hint">${esc(t("foodNone"))}</p>`}</div></div>`;
 }
 {const tabs0=window.TMC.appTabs;window.TMC.appTabs=function(u){return (tabs0?tabs0(u):[]).concat([["foodin","📥"]])};
  window.TMC.appViews=window.TMC.appViews||{};window.TMC.appViews.foodin={html:foodInHTML,bind:function(){}};}
