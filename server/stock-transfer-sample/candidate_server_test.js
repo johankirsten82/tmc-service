@@ -169,6 +169,7 @@ t('MOCK candidate: 4 L + Food 2 L allows a 1 L job and both sides show 5 L', fun
   const job = { id: 'job1', fleet: 'TRK1', parts: [{ pid: 'p100', pn: 'P-100', qty: 1 }], at: '2026-11-08T12:00:00.000Z' };
   const sync = ctx.handle_({ token: login.token, device: 'ph', since: 0, changes: [{ kind: 'jc', id: 'job1', u: 5000, del: 0, data: job }] });
   assert.strictEqual(sync.ok, true);
+  assert.strictEqual(sync.stockImport, 1);
   assert.ok(!sync.refusedStock);
   assert.strictEqual(ctx.stockMap_(ctx.readAll_()).p100, 5);
   assert.strictEqual(phoneStock(sync.records, 'p100'), 5);
@@ -221,6 +222,94 @@ t('MOCK candidate: Check machine and a unit change are unchanged', function () {
   unit.transfer.lines[0].unit = 'bag';
   assert.strictEqual(ctx.handle_(unit).error, 'bad_request');
   assert.strictEqual(ctx.stockMap_(ctx.readAll_()).p100, 6);
+});
+
+function v5Source(src) {
+  return src
+    .replace("  recs_(store, 'flc').forEach(function (l) { if (l && l.pid) q[String(l.pid)] = r3_((q[String(l.pid)] || 0) + (Number(l.qtyTh) || 0) / 1000); });\n", '')
+    .replace(/, stockImport: 1/g, '')
+    .replace("  if (req && (req.action === 'importStockTransfer' || stockCodeHit_(req))) return stockImportEntry_(req);\n", '');
+}
+const PIN2 = 'cd'.repeat(32);
+function admin() { return { id: 'uAdmin', name: 'JA Kirsten', status: 'active', admin: 1, salt: 's', pinH: PIN, dev: 'ph-a', at: '2026-11-01T00:00:00.000Z' }; }
+function resign(src, label) {
+  const c = load(src);
+  seed(c, 'u', 'uAdmin', admin());
+  const a = c.handle_({ action: 'login', id: 'uAdmin', pinH: PIN, device: 'ph-a' });
+  assert.strictEqual(a.ok, true, label);
+  const b = c.handle_({ action: 'login', id: 'uAdmin', pinH: PIN, device: 'ph-a' });
+  assert.strictEqual(b.ok, true);
+  assert.notStrictEqual(b.token, a.token);
+  assert.strictEqual(c.handle_({ token: a.token, device: 'ph-a', since: 0, changes: [] }).error, 'bad_token');
+  const fresh = c.handle_({ action: 'login', id: 'uAdmin', pinH: PIN, device: 'ph-new' });
+  assert.strictEqual(fresh.ok, true);
+  const base = c.readAll_().map['u:uAdmin'].u;
+  const reset = c.handle_({ token: fresh.token, device: 'ph-new', since: 0, changes: [{ kind: 'u', id: 'uAdmin', u: base + 20, del: 0, data: { id: 'uAdmin', name: 'JA Kirsten', status: 'active', admin: 1, pinReset: base + 20, dev: 'ph-new', at: '2026-11-01T00:00:00.000Z' } }] });
+  assert.strictEqual(reset.accepted, 1);
+  const set = c.handle_({ action: 'setpin', id: 'uAdmin', salt: 'newsalt', pinH: PIN2, device: 'ph-new' });
+  assert.strictEqual(set.ok, true);
+  assert.strictEqual(c.handle_({ token: fresh.token, device: 'ph-new', since: 0, changes: [] }).error, 'bad_token');
+  assert.strictEqual(c.handle_({ action: 'login', id: 'uAdmin', pinH: PIN, device: 'ph-new' }).error, 'bad_pin');
+  assert.strictEqual(c.handle_({ action: 'login', id: 'uAdmin', pinH: PIN2, device: 'ph-new' }).ok, true);
+}
+function withOil(src) {
+  const c = load(src);
+  seed(c, 'u', 'uStaff', user());
+  seed(c, 'pt', 'p100', { id: 'p100', pn: 'P-100', name: 'SAMPLE Hydraulic oil', unit: 'L', qty0: 4, min: 1 });
+  seed(c, 'flc', 'lineOil001', { id: 'lineOil001', pid: 'p100', qtyTh: 2000, unit: 'L' });
+  return c;
+}
+function job(id, qty, u) { return { token: null, device: 'ph', since: 0, changes: [{ kind: 'jc', id: id, u: u, del: 0, data: { id: id, fleet: 'TRK1', parts: [{ pid: 'p100', qty: qty }] } }] }; }
+
+t('MOCK v5 and candidate: Admin re-sign-in after a new device', function () {
+  resign(code, 'candidate');
+  resign(v5Source(code), 'v5');
+});
+
+t('MOCK v5 ignores Food litres; candidate counts them once and says so', function () {
+  const v5 = withOil(v5Source(code));
+  const login = v5.handle_({ action: 'login', id: 'uStaff', pinH: PIN, device: 'ph' });
+  const big = job('jobBig', 5, 5000); big.token = login.token;
+  const refused = v5.handle_(big);
+  assert.ok(refused.refusedStock && refused.refusedStock.indexOf('jc:jobBig') >= 0);
+  assert.strictEqual(v5.stockMap_(v5.readAll_()).p100, 4);
+  assert.ok(!refused.stockImport);
+  const one = job('job1', 1, 5100); one.token = login.token;
+  assert.ok(!v5.handle_(one).refusedStock);
+  assert.strictEqual(v5.stockMap_(v5.readAll_()).p100, 3);
+  const again = job('job1', 1, 5200); again.token = login.token;
+  v5.handle_(again);
+  assert.strictEqual(v5.stockMap_(v5.readAll_()).p100, 3);
+  const cand = withOil(code);
+  const clogin = cand.handle_({ action: 'login', id: 'uStaff', pinH: PIN, device: 'ph' });
+  const cjob = job('job1', 1, 5000); cjob.token = clogin.token;
+  const cs = cand.handle_(cjob);
+  assert.strictEqual(cs.stockImport, 1);
+  assert.ok(!cs.refusedStock);
+  assert.strictEqual(cand.stockMap_(cand.readAll_()).p100, 5);
+  const crep = job('job1', 1, 6000); crep.token = clogin.token;
+  cand.handle_(crep);
+  assert.strictEqual(cand.stockMap_(cand.readAll_()).p100, 5);
+  const photo = cand.handle_({ action: 'photo', token: clogin.token, id: 'phok12', d: 'data:image/png;base64,aaaa' });
+  assert.strictEqual(photo.error, 'bad_photo');
+  const maint = cand.handle_({ token: clogin.token, device: 'ph', since: 0, changes: [{ kind: 'm', id: 'm100', u: 7000, del: 0, data: { id: 'm100', type: 'repair', fleet: 'TRK1', qty: 1, date: '2026-11-08' } }] });
+  assert.strictEqual(maint.accepted, 1);
+  assert.ok(!cand.readAll_().map['s:m100']);
+});
+
+t('phone on-hand matches v5 until a sync says stockImport', function () {
+  const html = fs.readFileSync(path.join(__dirname, '../../index.html'), 'utf8');
+  assert.ok(html.includes('if(stockReady())all("flc")'));
+  assert.ok(html.includes('Received – not usable yet'));
+  assert.ok(html.includes('j.stockImport===1'));
+  assert.ok(html.includes('"VER": 14'));
+  function phone(flag, qty0, flcL, used) { return Math.round((qty0 + (flag ? flcL : 0) - used) * 1000) / 1000; }
+  assert.strictEqual(phone(false, 4, 2, 0), 4);
+  assert.ok(phone(false, 4, 2, 0) - 5 < 0);
+  assert.strictEqual(phone(true, 4, 2, 1), 5);
+  assert.ok(html.includes('mnD=null;mnMode="";toast(t("mnOk"));tab="home"'));
+  assert.ok(html.includes('jcD=null;jcMode="list";toast(t("jcOk"))'));
+  assert.ok(html.includes('const u=Math.max(Date.now(),R[k]?R[k].u+1:0)'));
 });
 
 const failed = results.filter(function (r) { return r.indexOf('FAIL') === 0; });

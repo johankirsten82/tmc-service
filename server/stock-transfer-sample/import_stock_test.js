@@ -321,7 +321,9 @@ t('interruption while crediting an existing part does not double the litres', fu
 
 t('frontend on-hand includes Food credits and the sample screen is staff-facing', function () {
   assert.ok(html.includes('all("sc").forEach'));
-  assert.ok(html.includes('all("flc").forEach'));
+  assert.ok(html.includes('if(stockReady())all("flc")'));
+  assert.ok(html.includes('Received – not usable yet'));
+  assert.ok(html.includes('j.stockImport===1'));
   assert.ok(html.includes('all("jc").forEach'));
   assert.ok(html.includes('qty0'));
   assert.ok(html.includes('function foodWhen'));

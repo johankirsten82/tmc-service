@@ -441,7 +441,7 @@ function handle_(req) {
     var now = Date.now(), since = Number(req.since) || 0;
     var acc = merge_(store, changes, req.device, now), warn = '';
     if (acc) { writeRecs_(store); try { rebuildViews_(store); } catch (ve) { warn = 'views: ' + String(ve && ve.message || ve).slice(0, 200); } }
-    var res = { ok: true, now: now, accepted: acc, records: changedSince_(store, since, me, viewerId) };
+    var res = { ok: true, now: now, accepted: acc, records: changedSince_(store, since, me, viewerId), stockImport: 1 };
     if (refused.disc) { res.refused = refused.disc.length + (refused.n || 0); res.refusedWhy = refused.discWhy; res.refusedDiscard = refused.disc; }  /* SERVER CHANGE v9 */
     else if (refused.n) { res.refused = refused.n; res.refusedWhy = 'admin_only_fix'; }
     else if (refused.strict) { res.refused = refused.strict; res.refusedWhy = 'need_token'; }
@@ -459,7 +459,7 @@ function doPost(e) {
     return out_(handle_(req));
   } catch (err) { return out_({ ok: false, error: String(err && err.message || err).slice(0, 300) }); }
 }
-function doGet() { return out_({ ok: true, app: 'TMC Service sync', hint: 'running' }); }
+function doGet() { return out_({ ok: true, app: 'TMC Service sync', hint: 'running', stockImport: 1 }); }
 /* ===== ONE-TIME SETUP (standard in every app): open the editor, pick setupOnce, Run, Allow. =====
    TMC Base replaces the placeholder with the real team code ONLY in the copy pasted into Google
    (never commit a real code). Left as the placeholder → TEAM_CODE is not touched (token-only app). */
