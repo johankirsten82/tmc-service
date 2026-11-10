@@ -23,7 +23,7 @@
  "APP_ID": "tmcservice",
  "NAME": "TMC Service",
  "SHORT": "TMC Service",
- "VER": 13,
+ "VER": 14,
  "COLOR": "#1d4ed8",
  "COLOR_DARK": "#1e3a8a",
  "REPORT_COLOR": "#1B7F3B",
@@ -375,6 +375,7 @@ function syncNow(){
   .then(r=>r.json()).then(j=>{
     if(j&&!j.ok&&(j.error==="bad_token"||j.error==="not_active")){const hadTok=!!sTok();L.del("tok");if(sCode()&&hadTok){relogNo=0;syncSoon(300)}else if(tokMode()&&hadTok)syncSoon(300)}  // v9 (base VER 7): re-check now (a removed user is signed out at once)
     if(!j||!j.ok)throw new Error(j&&j.error||"sync");
+    if(Array.isArray(j.records)){if(j.stockImport===1)L.set("stockImport","1");else L.del("stockImport")}
     Object.keys(sent).forEach(k=>{if(R[k]&&R[k].u===sent[k])delete dirty[k]});
     const F=force;force={};
     (j.records||[]).forEach(s=>{const k=s.kind+":"+s.id,u=+s.u||0,loc=R[k];if(F[k]&&!dirty[k]){delete F[k]}else if(loc&&(loc.u>u||(dirty[k]&&loc.u>=u)))return;
@@ -416,7 +417,7 @@ function clearFail(k){const F=L.j("pinFail",{});delete F[k];L.sj("pinFail",F)}
 
 /* ---------------- Screens ---------------- */
 let tab="home",flow=null; // flow = sign-in sub-screen
-function card(inner){return `<div class="full"><div class="signin"><div class="card"><img class="logo" src="icons/icon-192.png?v=13" alt="">${inner}${insHTML()}</div><div id="ncW" class="bar ncW ncBox"></div></div></div>`}
+function card(inner){return `<div class="full"><div class="signin"><div class="card"><img class="logo" src="icons/icon-192.png?v=14" alt="">${inner}${insHTML()}</div><div id="ncW" class="bar ncW ncBox"></div></div></div>`}
 function langBtns(){return `<div class="langs"><select id="langSel" aria-label="Language">${["en","fr","ar"].map(l=>`<option value="${l}"${l===lang?" selected":""}>🌐 ${l==="en"?"English":l==="fr"?"Français":"العربية"}</option>`).join("")}</select></div>`}
 function pinInput(id,ph){return `<div class="pw"><input id="${id}" name="${C.APP_ID}-${id}-${Math.random().toString(36).slice(2,7)}" class="msk" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-form-type="other" placeholder="${esc(ph)}"><button type="button" class="eye" data-eye="${id}">👁</button></div>`}
 function render(){
@@ -425,7 +426,7 @@ function render(){
   if(!u){A.innerHTML=signinHTML();bindSignin();return}
   flow=null;
   if(tab==="users"&&!u.admin)tab="home";if(tab==="work"&&!workOk(u))tab="home";if(tab==="reports"&&!(repOk(u)&&REPORTS.length))tab="home";if(window.TMC.appViews&&window.TMC.appViews[tab]&&!tabsOf(u).some(x=>x[0]===tab))tab="home";
-  A.innerHTML=`<header id="hBand"><img src="icons/icon-192.png?v=13" alt=""><div class="t">${esc(C.SHORT)}</div><span class="hS" id="hS"><span id="sDot" class="dot"></span><span id="sTime" class="sTime"></span></span><select id="hLang" class="hLang" aria-label="Language">${["en","fr","ar"].map(l=>`<option value="${l}"${l===lang?" selected":""}>${l.toUpperCase()}</option>`).join("")}</select></header>
+  A.innerHTML=`<header id="hBand"><img src="icons/icon-192.png?v=14" alt=""><div class="t">${esc(C.SHORT)}</div><span class="hS" id="hS"><span id="sDot" class="dot"></span><span id="sTime" class="sTime"></span></span><select id="hLang" class="hLang" aria-label="Language">${["en","fr","ar"].map(l=>`<option value="${l}"${l===lang?" selected":""}>${l.toUpperCase()}</option>`).join("")}</select></header>
   <main><div id="ncW" class="bar ncW"></div><div id="updW" class="bar updW"></div><div id="pendW" class="bar pendW"></div><div id="view">${viewHTML(u)}</div></main>
   <nav class="tabs">${tabsOf(u).map(x=>navBtn(...x)).join("")}</nav>`;
   bindMain(u);paintSync();paintUpd();
@@ -448,7 +449,7 @@ function signinHTML(){
   if(f.s==="gone")return card(`<h2 id="goneT">❌ ${esc(t("goneT"))}</h2><p class="hint" style="font-size:18px">${esc(t("goneH"))}</p><button type="button" id="fAgain" style="min-height:60px">${esc(t("again"))}</button><button type="button" class="sec" id="fOther" style="min-height:60px">${esc(t("other"))}</button>`);
   if(f.s==="rej")return card(`<h2>❌ ${esc(t("rejT"))}</h2><p class="hint">${esc(t("rejH"))}</p><button type="button" class="sec" id="fOther">${esc(t("other"))}</button>`);
   if(f.s==="blk")return card(`<h2>⛔ ${esc(t("blkT"))}</h2><p class="hint">${esc(t("blkH"))}</p><button type="button" class="sec" id="fOther">${esc(t("other"))}</button>`);
-  return `<div class="full tmcS" style="--tmcS-c:${esc(C.COLOR)};--tmcS-cd:${esc(C.COLOR_DARK)}"><div class="signin"><div class="card"><img class="tmcS-logo logo" src="icons/icon-192.png?v=13" width="84" height="84" alt=""><h2 class="tmcS-t">${esc(C.NAME)}</h2><select id="langSel" class="tmcS-lang" aria-label="Language">${["en","fr","ar"].map(l=>`<option value="${l}"${l===lang?" selected":""}>🌐 ${l==="en"?"English":l==="fr"?"Français":"العربية"}</option>`).join("")}</select><input id="fName" class="tmcS-name" name="${C.APP_ID}-who" type="text" autocomplete="off" autocapitalize="words" spellcheck="true" autocorrect="on" data-lpignore="true" data-1p-ignore="true" placeholder="${esc(t("nameH"))}" value="${esc(L.get("lastName")||"")}"><p class="err tmcS-err" id="fErr"></p><button type="button" id="fName2" class="tmcS-go">${esc(t("go"))}</button>${insHTML()}</div><div id="ncW" class="bar ncW ncBox" role="alert"></div></div></div>`;
+  return `<div class="full tmcS" style="--tmcS-c:${esc(C.COLOR)};--tmcS-cd:${esc(C.COLOR_DARK)}"><div class="signin"><div class="card"><img class="tmcS-logo logo" src="icons/icon-192.png?v=14" width="84" height="84" alt=""><h2 class="tmcS-t">${esc(C.NAME)}</h2><select id="langSel" class="tmcS-lang" aria-label="Language">${["en","fr","ar"].map(l=>`<option value="${l}"${l===lang?" selected":""}>🌐 ${l==="en"?"English":l==="fr"?"Français":"العربية"}</option>`).join("")}</select><input id="fName" class="tmcS-name" name="${C.APP_ID}-who" type="text" autocomplete="off" autocapitalize="words" spellcheck="true" autocorrect="on" data-lpignore="true" data-1p-ignore="true" placeholder="${esc(t("nameH"))}" value="${esc(L.get("lastName")||"")}"><p class="err tmcS-err" id="fErr"></p><button type="button" id="fName2" class="tmcS-go">${esc(t("go"))}</button>${insHTML()}</div><div id="ncW" class="bar ncW ncBox" role="alert"></div></div></div>`;
 }
 function err(m){const e=$("fErr");if(e){e.textContent=m;e.style.display="block"}}
 function bindCommon(){
@@ -544,7 +545,7 @@ function viewHTML(u){
   if(tab==="reports")return repScreenHTML(u);
   /* SERVICE HOOK 4 (v7): app screens (Parts store) */if(window.TMC.appViews&&window.TMC.appViews[tab])return window.TMC.appViews[tab].html(u);
   const np=users().filter(x=>x.status==="pending").length;
-  return `<div class="box hhero" id="hHero"><img src="icons/icon-192.png?v=13" alt="" width="64" height="64"><div><h2>${esc(C.NAME)}</h2><div id="hDate">${esc(new Date().toLocaleDateString(lang==="ar"?"ar-TD":lang==="fr"?"fr-FR":"en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric"}))}</div><div class="hhi" id="hHello">👋 ${esc(t("hello"))}, ${esc(u.name)}</div></div></div><button type="button" class="sec loBand" id="hOut">${esc(t("logout"))}</button>
+  return `<div class="box hhero" id="hHero"><img src="icons/icon-192.png?v=14" alt="" width="64" height="64"><div><h2>${esc(C.NAME)}</h2><div id="hDate">${esc(new Date().toLocaleDateString(lang==="ar"?"ar-TD":lang==="fr"?"fr-FR":"en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric"}))}</div><div class="hhi" id="hHello">👋 ${esc(t("hello"))}, ${esc(u.name)}</div></div></div><button type="button" class="sec loBand" id="hOut">${esc(t("logout"))}</button>
   <div class="tiles">${tabsOf(u).filter(x=>x[0]!=="home").map(([k,ic,n])=>`<button type="button" class="tile" data-tab="${k}"${k==="can"?' id="hCan"':""}><b>${ic}</b>${esc(t(k))}${n?` (${n})`:""}</button>`).join("")}</div>${/* SERVICE HOOK 1/3 (approved): app list on Home */""}${window.TMC.homeExtra?window.TMC.homeExtra(u):""}`;
 }
 /* ---- PHOTO: every photo field = 2 big buttons (camera OR phone gallery), same handler ----
@@ -796,7 +797,7 @@ const svLastC=s=>!s.p?(s.v.reading==null||s.v.reading===""?"—":svNum(s.v.readi
 const svDueC=s=>!s.p?"—":s.p.unit==="m"?svDt(s.p.due):svNum(s.p.due)+" "+svU(s.p.unit);
 const svRemC=s=>{if(s.g===3)return s.l.txt;const n=s.l.n,u=s.p.unit==="m"?" "+t("rsDays"):" "+svU(s.p.unit);return (n<0?"−":"")+svNum(Math.abs(n))+u};
 function svPrintHTML(u){const S=svStats(),cnt=[0,0,0,0];S.forEach(s=>cnt[s.g]++);const [f,to]=svRange(),D=svDone(f,to),M=mnInPeriod(f,to),site=svSite();
- return `<div id="svPrint" class="svA4"><div class="hd"><div class="l"><img src="icons/icon-192.png?v=13" alt=""><div><div class="co">${esc(C.NAME)}</div><div class="co2">${esc(t("rsTitle"))}</div></div></div>
+ return `<div id="svPrint" class="svA4"><div class="hd"><div class="l"><img src="icons/icon-192.png?v=14" alt=""><div><div class="co">${esc(C.NAME)}</div><div class="co2">${esc(t("rsTitle"))}</div></div></div>
  <div class="r"><div class="title">${esc(t("rsA4T"))}</div><table class="meta"><tr><td class="k">${esc(t("rsPer"))}</td><td>${esc(svDt(f))} – ${esc(svDt(to))}</td></tr><tr><td class="k">${esc(t("rsRDate"))}</td><td>${esc(svDt(svToday()))}</td></tr><tr><td class="k">${esc(t("rsSite"))}</td><td id="svA4Site">${esc(site||"—")}</td></tr></table></div></div>
  <h2>${esc(t("rsSum"))}</h2><div class="sum"><div><span class="mk m-r"></span>${esc(t("rsOver"))}&nbsp;<b>${cnt[0]}</b></div><div><span class="mk m-a"></span>${esc(t("rsSoon"))}&nbsp;<b>${cnt[1]}</b></div><div><span class="mk m-g"></span>${esc(t("rsOk"))}&nbsp;<b>${cnt[2]}</b></div><div>${esc(t("rsTotU"))}&nbsp;<b>${S.length}</b></div></div>
  <h2>${esc(t("rsSec2"))}</h2><table class="t" id="svA4St"><thead><tr><th>${esc(t("rsUnit"))}</th><th>${esc(t("rsDesc"))}</th><th>${esc(t("rsBasis"))}</th><th class="n">${esc(t("rsLastM"))}</th><th class="n">${esc(t("rsDueAtC"))}</th><th class="n">${esc(t("rsRem"))}</th><th>${esc(t("rsStat"))}</th></tr></thead><tbody>
@@ -903,7 +904,8 @@ const chadDT=iso=>{const d=new Date(iso);return isNaN(d)?String(iso||""):new Dat
 const stParts=()=>all("pt").slice().sort((a,b)=>String(a.pn).localeCompare(String(b.pn),undefined,{numeric:true}));
 const stPart=pid=>all("pt").find(x=>String(x.id)===String(pid))||null;
 const stR=n=>Math.round(n*1000)/1000;
-function stStock(pid){const p=stPart(pid);let q=p?(+p.qty0||0):0;all("sc").forEach(c=>{if(String(c.pid)===String(pid))q+=(+c.delta||0)});all("jc").forEach(j=>(j.parts||[]).forEach(l=>{if(String(l.pid)===String(pid))q-=(+l.qty||0)}));return stR(q)}
+function stockReady(){return L.get("stockImport")==="1"}
+function stStock(pid){const p=stPart(pid);let q=p?(+p.qty0||0):0;all("sc").forEach(c=>{if(String(c.pid)===String(pid))q+=(+c.delta||0)});if(stockReady())all("flc").forEach(l=>{if(l&&String(l.pid)===String(pid))q+=(+l.qtyTh||0)/1000});all("jc").forEach(j=>(j.parts||[]).forEach(l=>{if(String(l.pid)===String(pid))q-=(+l.qty||0)}));return stR(q)}
 const stMinOf=p=>+p.min||0;
 const stOrder=()=>stParts().filter(p=>stStock(p.id)<stMinOf(p));
 const stOk=u=>can("store",u)||can("storeEd",u);
@@ -1077,7 +1079,7 @@ function jcSaveFn(u){jcGrab();const D=jcD,v=jcVehNow();if(!D||!v)return;
  jcD=null;jcMode="list";toast(t("jcOk"));render()}
 /* A4 job card: same layout + company green as the approved a4-green Service report (.svA4 classes) */
 function jcPrintHTML(j,u){const site=svSite(),P=j.parts||[],tot=stR(P.reduce((a,l)=>a+(+l.qty||0),0)),veh=svVeh().find(x=>String(x.fleet)===String(j.fleet))||{};
- return `<div id="jcPrint" class="svA4"><div class="hd"><div class="l"><img src="icons/icon-192.png?v=13" alt=""><div><div class="co">${esc(C.NAME)}</div><div class="co2">${esc(t("jcT").replace("📋 ",""))}</div></div></div>
+ return `<div id="jcPrint" class="svA4"><div class="hd"><div class="l"><img src="icons/icon-192.png?v=14" alt=""><div><div class="co">${esc(C.NAME)}</div><div class="co2">${esc(t("jcT").replace("📋 ",""))}</div></div></div>
  <div class="r"><div class="title">${esc(t("jcA4T"))}</div><table class="meta"><tr><td class="k">${esc(t("jcNo"))}</td><td id="jcA4No">${esc(j.no||j.id)}</td></tr><tr><td class="k">${esc(t("rsDate"))}</td><td>${esc(svDt(j.date))}</td></tr><tr><td class="k">${esc(t("rsSite"))}</td><td>${esc(site||"—")}</td></tr></table></div></div>
  <h2>${esc(t("jcSec1"))}</h2><table class="t" id="jcA4V"><thead><tr><th>${esc(t("rsUnit"))}</th><th>${esc(t("rsDesc"))}</th><th class="n">${esc(t("rsMeterAt"))}</th><th>${esc(t("rsBasis"))}</th><th class="n">${esc(t("jcNextAt"))}</th></tr></thead><tbody><tr><td class="id">${esc(j.fleet)}</td><td>${esc(j.name||veh.name||"")}</td><td class="n">${esc(j.meter===""||j.meter==null?"—":svNum(j.meter)+" "+svU(j.mu))}</td><td>${esc((j.unit==="m"?t("rsMon"):j.unit==="h"?t("rsHrs"):"km")+(j.every?" / "+svNum(j.every):""))}</td><td class="n">${esc(jcDueTxt(j.unit,j.due))}</td></tr></tbody></table>
  <h2>${esc(t("jcSec2"))}</h2><div class="notes" id="jcA4W">${esc(j.work)}</div><div class="note">${esc(t("rsDoneBy"))}: <b>${esc(j.by)}</b></div>
@@ -1298,8 +1300,45 @@ Object.assign(T.fr,{cmT:"🔔 Vérifier la machine (consommation élevée)",cmRa
 Object.assign(T.ar,{cmT:"🔔 فحص الآلة (استهلاك وقود مرتفع)",cmRate:"⛽ %a لتر/س (المعتاد %b)",cmDone:"✅ تم",cmSure:"تم فحص الآلة؟ سيظهر ✅ في تطبيق الوقود."});
 {const st=document.createElement("style");st.textContent=".cmBox{border:3px solid #dc2626}.cmBox h3{color:#b91c1c}.cmRow{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px solid #eee}.cmRow>div{flex:1}.cmRow button{flex:none;white-space:nowrap;min-height:48px;padding:0 14px;font-weight:800;border-radius:10px}";document.head.appendChild(st)}
 Object.assign(window.TMC,{cmOpen:cmOpen});
+/* SAMPLE food stock — contract v1 receiver display. Not a live import.
+   The phone has no receiver URL and no import code. Hash #sample-food-stock
+   shows marked sample rows in this tab only and does not call the Sheet. */
+Object.assign(T.en,{foodin:"Received",foodT:"Received stock",foodNone:"No Food stock received.",foodPn:"Part no",foodFrom:"Food",foodRec:"Receipts",foodWait:"Received – not usable yet",foodSample:"SAMPLE — not live stock"});
+Object.assign(T.fr,{foodin:"Reçu",foodT:"Stock reçu",foodNone:"Aucun stock Food reçu.",foodPn:"N° pièce",foodFrom:"Food",foodRec:"Reçus",foodWait:"Reçu – pas encore utilisable",foodSample:"SAMPLE — pas du stock réel"});
+Object.assign(T.ar,{foodin:"الوارد",foodT:"المخزون الوارد",foodNone:"لا يوجد مخزون وارد.",foodPn:"رقم القطعة",foodFrom:"Food",foodRec:"إيصالات",foodWait:"وارد – غير قابل للاستخدام بعد",foodSample:"SAMPLE — ليس مخزوناً حياً"});
+function foodFmtTh(th){th=Math.round(+th||0);const s=String(Math.abs(th)).padStart(4,"0");return (th<0?"-":"")+parseInt(s.slice(0,-3),10)+"."+s.slice(-3)}
+function foodWhen(iso){const s=chadDT(iso);return s?s+" WAT":""}
+function foodStockSampleOn(){return /(?:^#|&)sample-food-stock(?:&|$)/.test(location.hash||"")}
+function foodStockSampleLoad(){
+  if(!foodStockSampleOn())return;
+  lang="en";L.set("lang","en");
+  const pinH="sample",u={id:"sampleclerk",name:"SAMPLE Clerk",status:"active",admin:0,perms:[],pinH:pinH,salt:"sample"};
+  R["u:"+u.id]={kind:"u",id:u.id,u:1,del:0,data:u};
+  const putS=(kind,id,data)=>{R[kind+":"+id]={kind:kind,id:id,u:1,del:0,data:data}};
+  putS("pt","p100",{id:"p100",pn:"P-100",name:"SAMPLE Hydraulic oil",unit:"L",qty0:4,min:1,veh:["*"],sample:1});
+  putS("pt","steelrope",{id:"steelrope",pn:"SR-10",name:"SAMPLE Steel rope",unit:"m",qty0:0,min:0,veh:["*"],sample:1});
+  putS("flc","lineRope01",{id:"lineRope01",transferId:"SAMPLETR1001",pid:"steelrope",sourceItemId:"foodrope01",sourceApp:"fi",qtyTh:3000,name:"SAMPLE Steel rope",unit:"m",sample:1});
+  putS("flc","lineOil001",{id:"lineOil001",transferId:"SAMPLETR1001",pid:"p100",sourceItemId:"foodoil88",sourceApp:"fi",qtyTh:2000,name:"SAMPLE Hydraulic oil",unit:"L",sample:1});
+  putS("ftr","SAMPLETR1001",{id:"SAMPLETR1001",status:"applied",at:"2026-11-08T11:31:00.000Z",by:"SAMPLE Staff",sourceApp:"fi",destinationApp:C.APP_ID,lineIds:["lineOil001","lineRope01"],sample:1});
+  L.set("uid",u.id);L.set("uok",u.id+":"+pinH);L.del("tok");
+  window.TMC.foodStockSample=1;tab="foodin";
+}
+function foodInHTML(){
+  const ids=[];all("flc").forEach(l=>{const id=l&&String(l.pid||"");if(id&&ids.indexOf(id)<0)ids.push(id)});
+  const rows=ids.map(stPart).filter(Boolean).sort((a,b)=>String(a.name).localeCompare(String(b.name)));
+  const sample=!!window.TMC.foodStockSample||rows.some(r=>r.sample);
+  const ready=stockReady();
+  const cards=rows.map(p=>{const got=all("flc").filter(l=>String(l.pid)===String(p.id)).reduce((a,l)=>a+(+l.qtyTh||0),0);const q=ready?foodFmtTh(Math.round(stStock(p.id)*1000)):foodFmtTh(got);
+    return `<article class="stIt foodCard" data-stock="${esc(p.id)}"><div class="nm"><b>${esc(p.name)}</b></div><div class="foodQty">${esc(q)} ${esc(p.unit||"")}</div><div class="foodMeta">${esc(t("foodPn"))} ${esc(p.pn)} · ${esc(t("foodFrom"))}</div>${ready?"":`<div class="foodMeta foodWait">${esc(t("foodWait"))}</div>`}</article>`}).join("");
+  const rec=all("ftr").filter(r=>r.status==="applied").map(r=>`<article class="stIt" data-tr="${esc(r.id)}"><div class="nm"><b>${esc(r.id)}</b></div><div class="foodMeta">${esc(foodWhen(r.at))}${r.by?" · "+esc(r.by):""}</div></article>`).join("");
+  return `<div id="foodStock">${sample?`<p class="foodBan" id="foodSample">${esc(t("foodSample"))}</p>`:""}<div class="box"><h2>${esc(t("foodT"))}</h2>${cards||`<p class="hint" id="foodNone">${esc(t("foodNone"))}</p>`}</div><div class="box"><h2>${esc(t("foodRec"))}</h2>${rec||`<p class="hint">${esc(t("foodNone"))}</p>`}</div></div>`;
+}
+{const tabs0=window.TMC.appTabs;window.TMC.appTabs=function(u){return (tabs0?tabs0(u):[]).concat([["foodin","📥"]])};
+ window.TMC.appViews=window.TMC.appViews||{};window.TMC.appViews.foodin={html:foodInHTML,bind:function(){}};}
+{const st=document.createElement("style");st.textContent=".foodBan{background:#fef3c7;color:#92400e;border:2px solid #d97706;border-radius:12px;padding:10px 12px;margin:0 0 10px;font-weight:800;font-size:16px}.foodCard{border-left-color:#1d4ed8}.foodQty{font-size:28px;font-weight:800;letter-spacing:.3px}.foodMeta{font-size:16px;color:#334155;margin-top:4px}";document.head.appendChild(st)}
+foodStockSampleLoad();
 render();
-if(syncOn())syncNow();else if(sUrl())api({action:"status",name:"-"}).catch(()=>{});  // probe so "Not connected" shows on a fresh phone too
+if(!window.TMC.foodStockSample){if(syncOn())syncNow();else if(sUrl())api({action:"status",name:"-"}).catch(()=>{})}  // sample hash must not call the live Sheet
 })();
 /* SPELLCHECK START — phone spellcheck on every free-text box (names, items, notes).
    Never on PIN / number / sync / code / masked fields. Covers boxes built later too. */
